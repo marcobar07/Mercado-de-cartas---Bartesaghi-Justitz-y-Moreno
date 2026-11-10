@@ -5,7 +5,7 @@ Módulo de clases de Cajas de Loot.
 from abc import ABC
 from typing import List, Dict, Any
 
-import Funciones as funciones
+import funciones as funciones
 from .clases_arma import Arma, ArmaBlanca, Ak47, AWP, Glock
 
 

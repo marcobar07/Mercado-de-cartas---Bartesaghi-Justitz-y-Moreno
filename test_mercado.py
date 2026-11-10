@@ -6,7 +6,7 @@ Ejecutar con: python -m unittest test_mercado.py
 import importlib
 import unittest
 
-import Funciones as f
+import funciones as f
 
 # Carga directa del paquete 'creación de clases'
 clases_mod = __import__("creación de clases")

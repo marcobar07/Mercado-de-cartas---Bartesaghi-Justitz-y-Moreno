@@ -1,201 +1,20 @@
 """
-Módulo de funciones auxiliares, números pseudoaleatorios con semilla y
-gestión integral del mercado de cartas / armas.
-
-Este módulo cumple dos propósitos fundamentales:
-1. Almacenar y alterar la semilla pseudoaleatoria para garantizar reproducibilidad.
-2. Proveer las funciones globales y de orquestación que gestionan las operaciones
-   reales del mercado (aperturas de cajas, publicaciones con precios sugeridos,
-   compras con comisiones, cancelaciones, filtrados e informes financieros),
-   invocando los métodos de cada clase del dominio (Usuario, Caja, Arma, Oferta, Mercado).
+Módulo de funciones de gestión real del mercado (orquestación de clases).
 """
 
-from datetime import datetime
-import random
 from typing import List, Dict, Any, Optional
 
-# ==========================================
-# 1. GESTIÓN DE LA SEMILLA PSEUDOALEATORIA
-# ==========================================
+from .soporte_global import (
+    generar_siguiente_id,
+    registrar_evento,
+    obtener_historial_eventos,
+    obtener_fondos_comisiones,
+    calcular_comision_mercado,
+    calcular_precio_sugerido,
+    evaluar_rentabilidad_apertura,
+    TASA_COMISION_DEFAULT,
+)
 
-# Semilla global guardada en este documento
-semilla: int = 42
-
-
-def obtener_semilla() -> int:
-    """Retorna el valor actual de la semilla almacenada en este documento."""
-    global semilla
-    return semilla
-
-
-def modificar_semilla(nueva_semilla: int) -> None:
-    """
-    Modifica manualmente el valor de la semilla guardada.
-    Permite establecer un nuevo estado inicial para la generación pseudoaleatoria.
-    """
-    global semilla
-    semilla = nueva_semilla
-
-
-def alterar_semilla() -> int:
-    """
-    Aplica la semilla actual a random y genera un nuevo valor para 'semilla',
-    alterándola y guardándola para la próxima ejecución.
-    """
-    global semilla
-    random.seed(semilla)
-    semilla = random.randint(1, 2_147_483_647)
-    return semilla
-
-
-# Alias en inglés por conveniencia
-get_semilla = obtener_semilla
-set_semilla = modificar_semilla
-
-
-def choices(poblacion: List[Any], weights: Optional[List[float]] = None, k: int = 1) -> List[Any]:
-    """Selecciona k elementos con pesos, aplicando y alterando la semilla."""
-    global semilla
-    random.seed(semilla)
-    resultado = random.choices(poblacion, weights=weights, k=k)
-    semilla = random.randint(1, 2_147_483_647)
-    return resultado
-
-
-def uniform(a: float, b: float) -> float:
-    """Genera un float en [a, b], aplicando y alterando la semilla."""
-    global semilla
-    random.seed(semilla)
-    resultado = random.uniform(a, b)
-    semilla = random.randint(1, 2_147_483_647)
-    return resultado
-
-
-def randint(a: int, b: int) -> int:
-    """Genera un entero en [a, b], aplicando y alterando la semilla."""
-    global semilla
-    random.seed(semilla)
-    resultado = random.randint(a, b)
-    semilla = random.randint(1, 2_147_483_647)
-    return resultado
-
-
-def random_float() -> float:
-    """Genera un float en [0.0, 1.0), aplicando y alterando la semilla."""
-    global semilla
-    random.seed(semilla)
-    resultado = random.random()
-    semilla = random.randint(1, 2_147_483_647)
-    return resultado
-
-
-random_val = random_float
-
-
-def seleccionar_item_lootpool(lootpool: List[dict], pesos: List[float]) -> dict:
-    """Selecciona un ítem del lootpool ponderado por sus probabilidades."""
-    return choices(lootpool, weights=pesos, k=1)[0]
-
-
-def generar_desgaste(min_val: float = 0.00, max_val: float = 1.00, decimales: int = 4) -> float:
-    """Genera el desgaste del arma redondeado a los decimales especificados."""
-    return round(uniform(min_val, max_val), decimales)
-
-
-def generar_patron(min_val: int = 1, max_val: int = 1000) -> int:
-    """Genera un patrón numérico entero para el arma entre min_val y max_val."""
-    return randint(min_val, max_val)
-
-
-def determinar_stattrack(probabilidad: float = 0.10) -> bool:
-    """Determina si el arma obtenida tendrá tecnología StatTrak."""
-    return random_float() < probabilidad
-
-
-# ==========================================
-# 2. ESTADO Y FUNCIONES GLOBALES DE SOPORTE
-# ==========================================
-
-# Contador global para IDs únicos de armas
-_contador_id_armas: int = 1000
-
-# Registro global de eventos y auditoría del sistema
-_historial_eventos: List[Dict[str, Any]] = []
-
-# Fondo global acumulado por comisiones del mercado
-_fondos_comisiones_mercado: int = 0
-
-# Tasa de comisión predeterminada del mercado (5%)
-TASA_COMISION_DEFAULT: float = 0.05
-
-
-def generar_siguiente_id() -> int:
-    """Genera y retorna un ID autoincremental único a nivel global."""
-    global _contador_id_armas
-    _contador_id_armas += 1
-    return _contador_id_armas
-
-
-def registrar_evento(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Registra una acción en el historial global de auditoría del sistema."""
-    global _historial_eventos
-    evento = {
-        "timestamp": datetime.now(),
-        "tipo": tipo,
-        "descripcion": descripcion,
-        "datos": datos if datos is not None else {}
-    }
-    _historial_eventos.append(evento)
-    return evento
-
-
-def obtener_historial_eventos() -> List[Dict[str, Any]]:
-    """Retorna una copia del historial de eventos global."""
-    return list(_historial_eventos)
-
-
-def limpiar_historial_eventos() -> None:
-    """Limpia el registro global de eventos."""
-    global _historial_eventos
-    _historial_eventos.clear()
-
-
-def obtener_fondos_comisiones() -> int:
-    """Retorna el total de fondos acumulados por comisiones de mercado."""
-    return _fondos_comisiones_mercado
-
-
-def calcular_comision_mercado(monto: int, tasa: float = TASA_COMISION_DEFAULT) -> int:
-    """Calcula la comisión del mercado redondeada a entero a partir de un monto y una tasa."""
-    return int(monto * tasa)
-
-
-def calcular_precio_sugerido(valor_base: int, margen_porcentaje: float = 0.0) -> int:
-    """
-    Calcula un precio de venta recomendado aplicando un margen porcentual sobre
-    el valor calculado del arma (ej. +0.10 para 10% sobre el valor, -0.15 para liquidación rápida).
-    """
-    precio = int(valor_base * (1.0 + margen_porcentaje))
-    return max(precio, 1)
-
-
-def evaluar_rentabilidad_apertura(precio_caja: int, valor_arma: int) -> Dict[str, Any]:
-    """Evalúa financieramente la apertura de una caja: ganancia/pérdida neta y ROI."""
-    beneficio_neto = valor_arma - precio_caja
-    roi_porcentaje = round((beneficio_neto / precio_caja) * 100, 2) if precio_caja > 0 else 0.0
-    return {
-        "precio_caja": precio_caja,
-        "valor_arma": valor_arma,
-        "beneficio_neto": beneficio_neto,
-        "roi_porcentaje": roi_porcentaje,
-        "es_rentable": beneficio_neto >= 0
-    }
-
-
-# ==========================================
-# 3. FUNCIONES DE GESTIÓN REAL DEL MERCADO
-# (Orquestan flujos completos invocando métodos de cada clase)
-# ==========================================
 
 def gestionar_compra_y_apertura_caja(usuario: Any, caja: Any) -> Dict[str, Any]:
     """
@@ -340,12 +159,11 @@ def gestionar_compra_oferta(
     3. Valida que el comprador tenga fondos suficientes.
     4. Ejecuta mercado.comprar_oferta(oferta, comprador).
     5. Si aplica comisión, calcula la comisión global con calcular_comision_mercado(),
-       la retiene de los fondos del vendedor con vendedor.gastar_fondos() y la acredita
-       al fondo global del mercado _fondos_comisiones_mercado.
+       la retiene de los fondos del vendedor con vendedor.gastar_fondos().
     6. Actualiza los valores de inventario de ambos usuarios con usuario.valor_inventario().
     7. Registra el evento detallado con la función global registrar_evento().
     """
-    global _fondos_comisiones_mercado
+    import funciones.soporte_global as soporte
 
     # Validación 1: Auto-compra
     if comprador.id == oferta.vendedor.id:
@@ -388,9 +206,8 @@ def gestionar_compra_oferta(
     comision = 0
     if aplicar_comision:
         comision = calcular_comision_mercado(precio_transaccion, tasa_comision)
-        # Se retiene la comisión al vendedor
         if vendedor.gastar_fondos(comision):
-            _fondos_comisiones_mercado += comision
+            soporte._fondos_comisiones_mercado += comision
 
     # Auditoría de valor de inventarios actualizados
     valor_inv_comprador = comprador.valor_inventario()
@@ -463,10 +280,7 @@ def gestionar_busqueda_y_filtrado(
 ) -> List[Any]:
     """
     Filtra y ordena ofertas activas en el mercado según múltiples criterios:
-    - tipo_arma: filtra por tipo ("Ak47", "AWP", "Glock", "ArmaBlanca", etc.)
-    - rareza: filtra por rareza ("azul", "violeta", "rosada", "roja", "dorada")
-    - stattrack: filtra por True o False
-    - precio_maximo: filtra ofertas cuyo precio sea menor o igual al valor
+    - tipo_arma, rareza, stattrack, precio_maximo
     - ordenar_por: 'precio' (ascendente), 'precio_desc', o 'desgaste'
     """
     resultados = []
@@ -485,7 +299,6 @@ def gestionar_busqueda_y_filtrado(
 
         resultados.append(oferta)
 
-    # Ordenamiento
     if ordenar_por == "precio":
         resultados.sort(key=lambda o: o.precio)
     elif ordenar_por == "precio_desc":
@@ -502,14 +315,7 @@ def gestionar_liquidacion_masiva(
     valor_maximo_corte: int,
     descuento_liquidacion: float = 0.15
 ) -> Dict[str, Any]:
-    """
-    Vende o publica en lote todas las armas de bajo valor de un usuario para obtener liquidez rápida:
-    1. Recorre el inventario de armas del usuario.
-    2. Para cada arma con valor <= valor_maximo_corte, calcula un precio reducido con
-       la función global calcular_precio_sugerido() y margen negativo.
-    3. Las publica en el mercado mediante gestionar_publicacion_oferta().
-    4. Registra el resumen en el historial de eventos global.
-    """
+    """Vende o publica en lote todas las armas de bajo valor de un usuario."""
     armas_a_liquidar = [
         arma for arma in list(usuario.inventario_armas)
         if arma.calcular_valor() <= valor_maximo_corte
@@ -540,14 +346,7 @@ def gestionar_liquidacion_masiva(
 
 
 def gestionar_informe_completo_mercado(mercado: Any, usuarios: Optional[List[Any]] = None) -> Dict[str, Any]:
-    """
-    Genera un informe integral del mercado:
-    - Ofertas activas y volumen económico en venta.
-    - Historial de transacciones concluidas y volumen transaccionado.
-    - Total recaudado por comisiones del mercado (función global obtener_fondos_comisiones()).
-    - Análisis de inventarios de cada usuario mediante usuario.valor_inventario().
-    - Total de eventos registrados en el log global.
-    """
+    """Genera un informe integral del mercado y balance patrimonial de los usuarios."""
     total_ofertas_activas = len(mercado.ofertas_activas)
     valor_acumulado_activas = sum(o.precio for o in mercado.ofertas_activas)
 
@@ -555,10 +354,8 @@ def gestionar_informe_completo_mercado(mercado: Any, usuarios: Optional[List[Any
     ofertas_canceladas = [o for o in mercado.historial if o.estado == "Cancelada"]
     volumen_ventas = sum(o.precio for o in ventas_concluidas)
 
-    # Identificar la venta más cara
     oferta_mas_cara = max(ventas_concluidas, key=lambda o: o.precio) if ventas_concluidas else None
 
-    # Resumen por usuarios
     resumen_usuarios = []
     if usuarios:
         for u in usuarios:
@@ -588,30 +385,3 @@ def gestionar_informe_completo_mercado(mercado: Any, usuarios: Optional[List[Any
 
     return informe
 
-
-# ==========================================
-# 4. PRUEBA RÁPIDA / DEMOSTRACIÓN DE FUNCIONES
-# ==========================================
-
-if __name__ == "__main__":
-    print("=== DEMOSTRACIÓN DEL MÓDULO Funciones.py ===")
-    print(f"Semilla inicial: {obtener_semilla()}")
-
-    print("\n1. Verificando alteración y determinismo de semilla:")
-    v1 = uniform(0.0, 1.0)
-    print(f"   Llamada 1 -> valor={v1:.4f} | Nueva semilla={obtener_semilla()}")
-    v2 = uniform(0.0, 1.0)
-    print(f"   Llamada 2 -> valor={v2:.4f} | Nueva semilla={obtener_semilla()}")
-
-    modificar_semilla(42)
-    v3 = uniform(0.0, 1.0)
-    print(f"   Reiniciando semilla a 42 -> valor={v3:.4f} (Coincide: {v1 == v3})")
-
-    print("\n2. Probando funciones globales de soporte:")
-    print(f"   Siguiente ID: {generar_siguiente_id()}")
-    print(f"   Siguiente ID: {generar_siguiente_id()}")
-    print(f"   Comisión de $1000 al 5%: ${calcular_comision_mercado(1000)}")
-    print(f"   Precio sugerido para arma de $1000 (+15%): ${calcular_precio_sugerido(1000, 0.15)}")
-    print(f"   Rentabilidad de abrir caja de $250 con drop de $600: {evaluar_rentabilidad_apertura(250, 600)}")
-    registrar_evento("TEST", "Prueba de evento inicial")
-    print(f"   Eventos registrados en log: {len(obtener_historial_eventos())}")

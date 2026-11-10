@@ -29,9 +29,13 @@ Mercado-de-cartas---Bartesaghi-Justitz-y-Moreno/
 │   ├── clase_usuarios.py            # Clase Usuario (billetera e inventarios)
 │   └── clases_oferta_mercado.py     # Clases Oferta y Mercado
 │
-├── Funciones.py                     # Gestión de semilla, funciones pseudoaleatorias y orquestación
+├── funciones/
+│   ├── __init__.py                  # Paquete que exporta todas las funciones
+│   ├── semilla.py                   # Gestión de la semilla pseudoaleatoria y aleatoriedad
+│   ├── soporte_global.py            # Estado global (IDs, logs, comisiones, precios)
+│   └── gestion_mercado.py           # Orquestación de compras, ventas y auditoría
+│
 ├── main.py                          # Punto de entrada y simulación principal
-├── Creacion de clases proyecto final.py # Compatibilidad retroactiva
 ├── test_mercado.py                  # Suite de pruebas unitarias automáticas
 ├── Proyecto Final.drawio            # Diagramas de clases y arquitectura
 └── .gitignore                       # Filtro de archivos compilados y temporales

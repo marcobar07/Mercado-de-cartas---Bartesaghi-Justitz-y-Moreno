@@ -4,7 +4,7 @@ Importa las clases modularizadas desde el paquete 'creación de clases'
 y las funciones auxiliares de gestión y aleatoriedad desde 'Funciones.py'.
 """
 
-import Funciones as funciones
+import funciones as funciones
 
 # Importación de las clases desde el paquete 'creación de clases'
 _paquete = __import__("creación de clases")
