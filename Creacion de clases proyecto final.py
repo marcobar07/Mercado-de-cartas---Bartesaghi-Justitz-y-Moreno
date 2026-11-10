@@ -1,20 +1,25 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from enum import Enum
 from math import log
-import random
 from typing import List, Optional, Dict, Any
 
+import Funciones as funciones
+
 # ==========================================
-# 1. ENUM DE RAREZAS
+# 1. RAREZAS (Lista y Diccionario)
 # ==========================================
 
-class Rareza(str, Enum):
-    AZUL = "azul"
-    VIOLETA = "violeta"
-    ROSADA = "rosada"
-    ROJA = "roja"
-    DORADA = "dorada"
+# Lista de rarezas disponibles en el sistema
+RAREZAS: List[str] = ["azul", "violeta", "rosada", "roja", "dorada"]
+
+# Diccionario con los valores monetarios base según cada rareza
+VALORES_RAREZA: Dict[str, int] = {
+    "azul": 100,
+    "violeta": 150,
+    "rosada": 300,
+    "roja": 600,
+    "dorada": 1000,
+}
 
 
 # ==========================================
@@ -23,20 +28,24 @@ class Rareza(str, Enum):
 
 class Arma(ABC):
     """Clase abstracta base para todas las armas."""
-    def __init__(self, id_arma: int, skin: str, desgaste: float, patron: int, rareza: Rareza, stattrack: bool, tipo: Optional[str] = None):
+    def __init__(self, id_arma: int, skin: str, desgaste: float, patron: int, rareza: str, stattrack: bool, tipo: Optional[str] = None):
         self.id = id_arma
         self.skin = skin
         self.tipo = tipo if tipo is not None else self.__class__.__name__
         self.desgaste = desgaste
         self.patron = patron
-        self.rareza = Rareza(rareza)
+
+        rareza_normalizada = rareza.lower()
+        if rareza_normalizada not in VALORES_RAREZA:
+            raise ValueError(f"Rareza '{rareza}' no válida. Debe ser una de: {RAREZAS}")
+        self.rareza = rareza_normalizada
 
         # Validación según el tipo de arma
         if self.__class__.__name__ == "ArmaBlanca":
-            if self.rareza != Rareza.DORADA:
+            if self.rareza != "dorada":
                 raise ValueError("Para las armas blancas la rareza debe ser 'dorada'.")
         else:
-            if self.rareza == Rareza.DORADA:
+            if self.rareza == "dorada":
                 raise ValueError("Las armas convencionales solo pueden ser: azul, violeta, rosada o roja.")
 
         self.stattrack = stattrack
@@ -47,15 +56,8 @@ class Arma(ABC):
         Calcula el valor del arma según su rareza, patrón, desgaste y si es StatTrak,
         guarda el resultado en self.valor y lo retorna.
         """
-        # 1. Valor base según la Rareza:
-        valores_rareza = {
-            Rareza.AZUL: 100,       
-            Rareza.VIOLETA: 150,   
-            Rareza.ROSADA: 300,   
-            Rareza.ROJA: 600,      
-            Rareza.DORADA: 1000,    
-        }
-        base_rareza = valores_rareza[self.rareza]
+        # 1. Valor base según la Rareza obtenido del diccionario:
+        base_rareza = VALORES_RAREZA[self.rareza]
 
         # 2. Multiplicador o bonificación por StatTrak:
         multiplicador_stattrack = 1.5 if self.stattrack else 1.0  
@@ -79,7 +81,7 @@ class Arma(ABC):
 
 
 class ArmaBlanca(Arma):
-    def __init__(self, id_arma: int, skin: str, tipo: str, desgaste: float, patron: int, stattrack: bool, rareza: Rareza = Rareza.DORADA):
+    def __init__(self, id_arma: int, skin: str, tipo: str, desgaste: float, patron: int, stattrack: bool, rareza: str = "dorada"):
         super().__init__(id_arma, skin, desgaste, patron, rareza, stattrack, tipo=tipo)
 
     def calcular_valor(self) -> int:
@@ -146,12 +148,12 @@ class Caja(ABC):
 
         # 1. Selección ponderada por probabilidad
         pesos = [item["probabilidad"] for item in self.lootpool]
-        item_elegido = random.choices(self.lootpool, weights=pesos, k=1)[0]
+        item_elegido = funciones.choices(self.lootpool, weights=pesos, k=1)[0]
 
         # 2. Generación de atributos aleatorios del drop
-        desgaste = round(random.uniform(0.00, 1.00), 4)
-        patron = random.randint(1, 1000)
-        stattrack = random.random() < 0.10  # 10% de probabilidad de ser StatTrak
+        desgaste = round(funciones.uniform(0.00, 1.00), 4)
+        patron = funciones.randint(1, 1000)
+        stattrack = funciones.random_float() < 0.10  # 10% de probabilidad de ser StatTrak
 
         # 3. Instanciación del arma según su clase
         ClaseArma = item_elegido["clase"]
@@ -183,13 +185,13 @@ class Caja(ABC):
 class Kilovatio(Caja):
     PRECIO_FIJO = 250
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Block-18", "rareza": Rareza.AZUL, "probabilidad": 79.92, "subtipo": None},
-        {"clase": Glock, "skin": "High Beam", "rareza": Rareza.VIOLETA, "probabilidad": 15.98, "subtipo": None},
-        {"clase": AWP, "skin": "Capillary", "rareza": Rareza.ROSADA, "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Inheritance", "rareza": Rareza.ROJA, "probabilidad": 0.32, "subtipo": None},
-        {"clase": AWP, "skin": "Chrome Cannon", "rareza": Rareza.ROJA, "probabilidad": 0.32, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Fade", "rareza": Rareza.DORADA, "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Slaughter", "rareza": Rareza.DORADA, "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Block-18", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
+        {"clase": Glock, "skin": "High Beam", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
+        {"clase": AWP, "skin": "Capillary", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
+        {"clase": Ak47, "skin": "Inheritance", "rareza": "roja", "probabilidad": 0.32, "subtipo": None},
+        {"clase": AWP, "skin": "Chrome Cannon", "rareza": "roja", "probabilidad": 0.32, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Fade", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Slaughter", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
     def __init__(self, id_caja: int):
@@ -204,12 +206,12 @@ class Kilovatio(Caja):
 class DreamsAndNightmares(Caja):
     PRECIO_FIJO = 300
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Clear Polymer", "rareza": Rareza.AZUL, "probabilidad": 79.92, "subtipo": None},
-        {"clase": AWP, "skin": "Exoskeleton", "rareza": Rareza.VIOLETA, "probabilidad": 15.98, "subtipo": None},
-        {"clase": Glock, "skin": "Snack Attack", "rareza": Rareza.ROSADA, "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Nightwish", "rareza": Rareza.ROJA, "probabilidad": 0.64, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Lore", "rareza": Rareza.DORADA, "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Bowie", "skin": "Gamma Doppler", "rareza": Rareza.DORADA, "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Clear Polymer", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
+        {"clase": AWP, "skin": "Exoskeleton", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
+        {"clase": Glock, "skin": "Snack Attack", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
+        {"clase": Ak47, "skin": "Nightwish", "rareza": "roja", "probabilidad": 0.64, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Lore", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": ArmaBlanca, "subtipo": "Bowie", "skin": "Gamma Doppler", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
     def __init__(self, id_caja: int):
@@ -224,12 +226,12 @@ class DreamsAndNightmares(Caja):
 class Revolucion(Caja):
     PRECIO_FIJO = 350
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Winterized", "rareza": Rareza.AZUL, "probabilidad": 79.92, "subtipo": None},
-        {"clase": Glock, "skin": "Umbral Hare", "rareza": Rareza.VIOLETA, "probabilidad": 15.98, "subtipo": None},
-        {"clase": AWP, "skin": "Duality", "rareza": Rareza.ROSADA, "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Head Shot", "rareza": Rareza.ROJA, "probabilidad": 0.64, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Karambit", "skin": "Doppler", "rareza": Rareza.DORADA, "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Tiger Tooth", "rareza": Rareza.DORADA, "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Winterized", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
+        {"clase": Glock, "skin": "Umbral Hare", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
+        {"clase": AWP, "skin": "Duality", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
+        {"clase": Ak47, "skin": "Head Shot", "rareza": "roja", "probabilidad": 0.64, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Karambit", "skin": "Doppler", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Tiger Tooth", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
     def __init__(self, id_caja: int):
@@ -371,3 +373,51 @@ class Mercado:
         self.historial.append(oferta)
         
         return True
+
+
+# ==========================================
+# 7. DEMOSTRACIÓN / EJECUCIÓN PRINCIPAL
+# ==========================================
+
+if __name__ == "__main__":
+    print("=== SIMULACIÓN DEL MERCADO Y APERTURA DE CAJAS CON SEMILLA ===")
+    print(f"Semilla inicial: {funciones.obtener_semilla()}")
+
+    # 1. Crear usuarios
+    vendedor = Usuario(id_usuario="Usuario_Vendedor", fondos=1000)
+    comprador = Usuario(id_usuario="Usuario_Comprador", fondos=50000)
+
+    # 2. Asignar y abrir caja
+    caja = Kilovatio(id_caja=1)
+    vendedor.agregar_caja(caja)
+    print(f"\n{vendedor.id} tiene una {caja.nombre} en su inventario.")
+
+    print(f"Semilla antes de abrir: {funciones.obtener_semilla()}")
+    arma_dropeada = vendedor.abrir_caja(caja, id_nueva_arma=101)
+    print(f"Semilla después de abrir: {funciones.obtener_semilla()}")
+
+    if arma_dropeada:
+        print(f"\n¡Drop obtenido!")
+        print(f"  Tipo: {arma_dropeada.tipo}")
+        print(f"  Skin: {arma_dropeada.skin}")
+        print(f"  Rareza: {arma_dropeada.rareza}")
+        print(f"  Desgaste: {arma_dropeada.desgaste}")
+        print(f"  Patrón: {arma_dropeada.patron}")
+        print(f"  StatTrak: {'Sí' if arma_dropeada.stattrack else 'No'}")
+        print(f"  Valor estimado: ${arma_dropeada.valor}")
+
+        # 3. Publicar y vender en el mercado
+        mercado = Mercado()
+        print(f"\nPublicando oferta en el Mercado por ${arma_dropeada.valor}...")
+        oferta = mercado.publicar_oferta(vendedor, arma_dropeada, arma_dropeada.valor)
+        print(f"Ofertas activas en mercado: {len(mercado.ofertas_activas)}")
+
+        print(f"\n{comprador.id} compra el arma por ${oferta.precio}...")
+        exito = mercado.comprar_oferta(oferta, comprador)
+        print(f"Compra exitosa: {exito}")
+        print(f"Saldo vendedor: ${vendedor.fondos}")
+        print(f"Saldo comprador: ${comprador.fondos}")
+        print(f"Armas del comprador: {[arma.skin for arma in comprador.inventario_armas]}")
+        print(f"Ofertas activas restantes: {len(mercado.ofertas_activas)}")
+        print(f"Historial de transacciones: {len(mercado.historial)}")
+
