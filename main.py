@@ -1,28 +1,28 @@
 """
 Archivo principal de ejecución (main.py) del sistema Mercado de Cartas / Armas.
-Importa las clases modularizadas desde el paquete 'creación de clases'
-y las funciones auxiliares de gestión y aleatoriedad desde 'Funciones.py'.
+Importa las clases modularizadas desde el paquete 'creacion_de_clases'
+y las funciones auxiliares de gestión y aleatoriedad desde 'funciones'.
 """
 
 import funciones as funciones
-
-# Importación de las clases desde el paquete 'creación de clases'
-_paquete = __import__("creación de clases")
-
-Arma = _paquete.Arma
-ArmaBlanca = _paquete.ArmaBlanca
-Ak47 = _paquete.Ak47
-AWP = _paquete.AWP
-Glock = _paquete.Glock
-RAREZAS = _paquete.RAREZAS
-VALORES_RAREZA = _paquete.VALORES_RAREZA
-Caja = _paquete.Caja
-Kilovatio = _paquete.Kilovatio
-DreamsAndNightmares = _paquete.DreamsAndNightmares
-Revolucion = _paquete.Revolucion
-Usuario = _paquete.Usuario
-Oferta = _paquete.Oferta
-Mercado = _paquete.Mercado
+from creacion_de_clases import (
+    Arma,
+    ArmaBlanca,
+    Ak47,
+    AWP,
+    Glock,
+    RAREZAS,
+    VALORES_RAREZA,
+    Caja,
+    Kilovatio,
+    DreamsAndNightmares,
+    Revolucion,
+    Usuario,
+    Oferta,
+    Mercado,
+    Generador,
+    Auditor,
+)
 
 
 def ejecutar_simulacion():

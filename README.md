@@ -22,12 +22,13 @@ El proyecto simula un ecosistema completo de economía y mercado de armas y caja
 ```text
 Mercado-de-cartas---Bartesaghi-Justitz-y-Moreno/
 │
-├── creación de clases/
+├── creacion_de_clases/
 │   ├── __init__.py                  # Paquete que exporta todas las entidades
 │   ├── clases_arma.py               # Jerarquía de Armas y Rarezas (lista y diccionario)
 │   ├── clases_caja.py               # Jerarquía de Cajas de Loot
 │   ├── clase_usuarios.py            # Clase Usuario (billetera e inventarios)
-│   └── clases_oferta_mercado.py     # Clases Oferta y Mercado
+│   ├── clases_oferta_mercado.py     # Clases Oferta y Mercado
+│   └── clases_soporte.py            # Clases Generador y Auditor (simulaciones aisladas)
 │
 ├── funciones/
 │   ├── __init__.py                  # Paquete que exporta todas las funciones

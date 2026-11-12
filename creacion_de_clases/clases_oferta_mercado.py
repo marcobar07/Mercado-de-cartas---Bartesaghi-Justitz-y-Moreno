@@ -3,7 +3,7 @@ Módulo de las clases Oferta y Mercado.
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from .clases_arma import Arma
 from .clase_usuarios import Usuario
@@ -34,9 +34,10 @@ class Oferta:
 
 class Mercado:
     """Gestiona las ofertas activas y el historial de transacciones."""
-    def __init__(self):
+    def __init__(self, auditor: Optional[Any] = None):
         self.ofertas_activas: List[Oferta] = []
         self.historial: List[Oferta] = []
+        self.auditor = auditor
 
     def publicar_oferta(self, vendedor: Usuario, arma: Arma, precio: int) -> Oferta:
         """Crea una oferta, la añade a activas y quita el arma del inventario del vendedor."""

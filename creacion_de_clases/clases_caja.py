@@ -3,7 +3,7 @@ Módulo de clases de Cajas de Loot.
 """
 
 from abc import ABC
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import funciones as funciones
 from .clases_arma import Arma, ArmaBlanca, Ak47, AWP, Glock
@@ -11,37 +11,47 @@ from .clases_arma import Arma, ArmaBlanca, Ak47, AWP, Glock
 
 class Caja(ABC):
     """Clase abstracta base para las cajas de loot."""
-    def __init__(self, id_caja: int, nombre: str, lootpool: List[Dict[str, Any]], precio: int):
+    def __init__(self, id_caja: int, nombre: str, lootpool: List[Dict[str, Any]], precio: int, generador: Optional[Any] = None):
         self.id = id_caja
         self.nombre = nombre
         self.lootpool = lootpool
         self.precio = precio
+        self.generador = generador
 
-    def abrir(self, id_nueva_arma: int) -> Arma:
+    def abrir(self, id_nueva_arma: Optional[int] = None, generador: Optional[Any] = None) -> Arma:
         """
         Selecciona un ítem del lootpool según sus probabilidades,
         genera sus atributos aleatorios (desgaste, patrón, stattrack)
-        utilizando las funciones basadas en semilla de Funciones.py,
+        utilizando el Generador provisto (o las funciones de Funciones.py si no se suministra),
         y devuelve una nueva instancia del arma calculando su valor.
         """
         if not self.lootpool:
             raise ValueError(f"La caja '{self.nombre}' no tiene ítems en su lootpool.")
 
-        # 1. Selección ponderada por probabilidad
-        pesos = [item["probabilidad"] for item in self.lootpool]
-        item_elegido = funciones.choices(self.lootpool, weights=pesos, k=1)[0]
+        gen = generador if generador is not None else getattr(self, "generador", None)
 
-        # 2. Generación de atributos aleatorios del drop
-        desgaste = round(funciones.uniform(0.00, 1.00), 4)
-        patron = funciones.randint(1, 1000)
-        stattrack = funciones.random_float() < 0.10  # 10% de probabilidad de ser StatTrak
+        # 1. Selección y atributos mediante Generador o funciones globales
+        if gen is not None:
+            actual_id = id_nueva_arma if id_nueva_arma is not None else gen.generar_siguiente_id()
+            pesos = [item["probabilidad"] for item in self.lootpool]
+            item_elegido = gen.seleccionar_item_lootpool(self.lootpool, pesos)
+            desgaste = gen.generar_desgaste(0.00, 1.00, 4)
+            patron = gen.generar_patron(1, 1000)
+            stattrack = gen.determinar_stattrack(0.10)
+        else:
+            actual_id = id_nueva_arma if id_nueva_arma is not None else funciones.generar_siguiente_id()
+            pesos = [item["probabilidad"] for item in self.lootpool]
+            item_elegido = funciones.choices(self.lootpool, weights=pesos, k=1)[0]
+            desgaste = round(funciones.uniform(0.00, 1.00), 4)
+            patron = funciones.randint(1, 1000)
+            stattrack = funciones.random_float() < 0.10  # 10% de probabilidad de ser StatTrak
 
-        # 3. Instanciación del arma según su clase
+        # 2. Instanciación del arma según su clase
         ClaseArma = item_elegido["clase"]
 
         if ClaseArma is ArmaBlanca:
             arma = ClaseArma(
-                id_arma=id_nueva_arma,
+                id_arma=actual_id,
                 skin=item_elegido["skin"],
                 tipo=item_elegido.get("subtipo", "Cuchillo"),
                 desgaste=desgaste,
@@ -50,7 +60,7 @@ class Caja(ABC):
             )
         else:
             arma = ClaseArma(
-                id_arma=id_nueva_arma,
+                id_arma=actual_id,
                 skin=item_elegido["skin"],
                 desgaste=desgaste,
                 patron=patron,
@@ -58,7 +68,7 @@ class Caja(ABC):
                 stattrack=stattrack
             )
 
-        # 4. Cálculo de su valor monetario
+        # 3. Cálculo de su valor monetario
         arma.calcular_valor()
         return arma
 
@@ -75,12 +85,13 @@ class Kilovatio(Caja):
         {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Slaughter", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
-    def __init__(self, id_caja: int):
+    def __init__(self, id_caja: int, generador: Optional[Any] = None):
         super().__init__(
             id_caja=id_caja,
             nombre="Caja Kilovatio",
             lootpool=list(self.LOOTPOOL),
-            precio=self.PRECIO_FIJO
+            precio=self.PRECIO_FIJO,
+            generador=generador
         )
 
 
@@ -95,12 +106,13 @@ class DreamsAndNightmares(Caja):
         {"clase": ArmaBlanca, "subtipo": "Bowie", "skin": "Gamma Doppler", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
-    def __init__(self, id_caja: int):
+    def __init__(self, id_caja: int, generador: Optional[Any] = None):
         super().__init__(
             id_caja=id_caja,
             nombre="Caja Sueños y Pesadillas",
             lootpool=list(self.LOOTPOOL),
-            precio=self.PRECIO_FIJO
+            precio=self.PRECIO_FIJO,
+            generador=generador
         )
 
 
@@ -115,10 +127,11 @@ class Revolucion(Caja):
         {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Tiger Tooth", "rareza": "dorada", "probabilidad": 0.13},
     ]
 
-    def __init__(self, id_caja: int):
+    def __init__(self, id_caja: int, generador: Optional[Any] = None):
         super().__init__(
             id_caja=id_caja,
             nombre="Caja Revolución",
             lootpool=list(self.LOOTPOOL),
-            precio=self.PRECIO_FIJO
+            precio=self.PRECIO_FIJO,
+            generador=generador
         )

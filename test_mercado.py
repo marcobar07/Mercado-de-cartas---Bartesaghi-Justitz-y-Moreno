@@ -3,23 +3,23 @@ Suite de pruebas unitarias para el sistema de mercado, cajas, armas y funciones 
 Ejecutar con: python -m unittest test_mercado.py
 """
 
-import importlib
 import unittest
 
 import funciones as f
-
-# Carga directa del paquete 'creación de clases'
-clases_mod = __import__("creación de clases")
-Usuario = clases_mod.Usuario
-Mercado = clases_mod.Mercado
-Kilovatio = clases_mod.Kilovatio
-DreamsAndNightmares = clases_mod.DreamsAndNightmares
-Revolucion = clases_mod.Revolucion
-ArmaBlanca = clases_mod.ArmaBlanca
-Ak47 = clases_mod.Ak47
-AWP = clases_mod.AWP
-Glock = clases_mod.Glock
-VALORES_RAREZA = clases_mod.VALORES_RAREZA
+from creacion_de_clases import (
+    Usuario,
+    Mercado,
+    Kilovatio,
+    DreamsAndNightmares,
+    Revolucion,
+    ArmaBlanca,
+    Ak47,
+    AWP,
+    Glock,
+    VALORES_RAREZA,
+    Generador,
+    Auditor,
+)
 
 
 class TestSemillaYAleatoriedad(unittest.TestCase):
@@ -191,6 +191,122 @@ class TestGestionMercadoFunciones(unittest.TestCase):
         self.assertIn(arma, self.vendedor.inventario_armas)
         self.assertEqual(len(self.mercado.ofertas_activas), 0)
         self.assertEqual(oferta.estado, "Cancelada")
+
+
+class TestGeneradorYAuditor(unittest.TestCase):
+    def test_generadores_independientes(self):
+        gen1 = Generador(semilla=100, contador_id_inicial=1000)
+        gen2 = Generador(semilla=100, contador_id_inicial=2000)
+
+        # Mismas semillas iniciales generan mismas secuencias independientemente
+        val1 = gen1.uniform(0.0, 1.0)
+        val2 = gen2.uniform(0.0, 1.0)
+        self.assertEqual(val1, val2)
+
+        # Alterar gen1 no afecta a gen2
+        _ = gen1.randint(1, 100)
+        _ = gen1.alterar_semilla()
+        self.assertNotEqual(gen1.obtener_semilla(), gen2.obtener_semilla())
+
+        # Contadores de IDs independientes
+        id1 = gen1.generar_siguiente_id()
+        id2 = gen2.generar_siguiente_id()
+        self.assertEqual(id1, 1001)
+        self.assertEqual(id2, 2001)
+
+    def test_auditor_independiente_y_comisiones(self):
+        aud1 = Auditor(tasa_comision_default=0.05)
+        aud2 = Auditor(tasa_comision_default=0.10)
+
+        aud1.registrar_evento("TEST", "Evento en auditor 1")
+        aud1.acumular_comision(500)
+
+        # aud1 tiene datos
+        self.assertEqual(len(aud1.obtener_historial_eventos()), 1)
+        self.assertEqual(aud1.obtener_fondos_comisiones(), 500)
+
+        # aud2 no fue tocado
+        self.assertEqual(len(aud2.obtener_historial_eventos()), 0)
+        self.assertEqual(aud2.obtener_fondos_comisiones(), 0)
+
+        # Tasas de comisiones independientes
+        self.assertEqual(aud1.calcular_comision_mercado(1000), 50)
+        self.assertEqual(aud2.calcular_comision_mercado(1000), 100)
+
+
+class TestSimulacionesConcurrentesSinEstadoGlobal(unittest.TestCase):
+    """
+    Verifica que dos simulaciones con sus propios Generador y Auditor
+    puedan ejecutarse de manera entrelazada sin interferir en absoluto.
+    """
+    def test_dos_simulaciones_paralelas_no_se_pisan(self):
+        # Configuración Simulación A
+        gen_a = Generador(semilla=111, contador_id_inicial=1000)
+        aud_a = Auditor()
+        mercado_a = Mercado(auditor=aud_a)
+        vendedor_a = Usuario("Vendedor_A", fondos=10000)
+        comprador_a = Usuario("Comprador_A", fondos=50000)
+
+        # Configuración Simulación B
+        gen_b = Generador(semilla=999, contador_id_inicial=5000)
+        aud_b = Auditor()
+        mercado_b = Mercado(auditor=aud_b)
+        vendedor_b = Usuario("Vendedor_B", fondos=20000)
+        comprador_b = Usuario("Comprador_B", fondos=70000)
+
+        # Paso 1: Simulación A compra y abre caja
+        caja_a = Kilovatio(id_caja=1, generador=gen_a)
+        res_a1 = f.gestionar_compra_y_apertura_caja(vendedor_a, caja_a, generador=gen_a, auditor=aud_a)
+        self.assertTrue(res_a1["exito"])
+        arma_a = res_a1["arma"]
+        self.assertEqual(arma_a.id, 1001)
+
+        # Verificar que Simulación B no fue afectada
+        self.assertEqual(gen_b.obtener_contador_id(), 5000)
+        self.assertEqual(gen_b.obtener_semilla(), 999)
+        self.assertEqual(len(aud_b.obtener_historial_eventos()), 0)
+        self.assertEqual(aud_b.obtener_fondos_comisiones(), 0)
+
+        # Paso 2: Simulación B compra y abre caja
+        caja_b = Revolucion(id_caja=2, generador=gen_b)
+        res_b1 = f.gestionar_compra_y_apertura_caja(vendedor_b, caja_b, generador=gen_b, auditor=aud_b)
+        self.assertTrue(res_b1["exito"])
+        arma_b = res_b1["arma"]
+        self.assertEqual(arma_b.id, 5001)
+
+        # Paso 3: Publicaciones cruzadas en sus respectivos mercados
+        pub_a = f.gestionar_publicacion_oferta(mercado_a, vendedor_a, arma_a, precio_personalizado=1000, auditor=aud_a)
+        pub_b = f.gestionar_publicacion_oferta(mercado_b, vendedor_b, arma_b, precio_personalizado=2500, auditor=aud_b)
+        self.assertEqual(len(mercado_a.ofertas_activas), 1)
+        self.assertEqual(len(mercado_b.ofertas_activas), 1)
+
+        # Paso 4: Compras en sus respectivos mercados con cobro de comisión
+        compra_a = f.gestionar_compra_oferta(mercado_a, comprador_a, pub_a["oferta"], aplicar_comision=True, auditor=aud_a)
+        self.assertTrue(compra_a["exito"])
+        self.assertEqual(aud_a.obtener_fondos_comisiones(), 50)  # 5% de 1000
+        self.assertEqual(aud_b.obtener_fondos_comisiones(), 0)   # Aún 0 en B
+
+        compra_b = f.gestionar_compra_oferta(mercado_b, comprador_b, pub_b["oferta"], aplicar_comision=True, auditor=aud_b)
+        self.assertTrue(compra_b["exito"])
+        self.assertEqual(aud_b.obtener_fondos_comisiones(), 125) # 5% de 2500
+        self.assertEqual(aud_a.obtener_fondos_comisiones(), 50)  # Inalterado en A
+
+        # Paso 5: Informes finales independientes
+        info_a = f.gestionar_informe_completo_mercado(mercado_a, usuarios=[vendedor_a, comprador_a], auditor=aud_a)
+        info_b = f.gestionar_informe_completo_mercado(mercado_b, usuarios=[vendedor_b, comprador_b], auditor=aud_b)
+
+        self.assertEqual(info_a["volumen_total_transaccionado"], 1000)
+        self.assertEqual(info_b["volumen_total_transaccionado"], 2500)
+        self.assertEqual(info_a["fondos_comisiones_mercado"], 50)
+        self.assertEqual(info_b["fondos_comisiones_mercado"], 125)
+
+        # Los historiales no se mezclaron
+        for ev in aud_a.obtener_historial_eventos():
+            self.assertNotIn("Vendedor_B", ev["descripcion"])
+            self.assertNotIn("Comprador_B", ev["descripcion"])
+        for ev in aud_b.obtener_historial_eventos():
+            self.assertNotIn("Vendedor_A", ev["descripcion"])
+            self.assertNotIn("Comprador_A", ev["descripcion"])
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 Módulo de la clase Usuario.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from .clases_arma import Arma
 from .clases_caja import Caja
@@ -40,11 +40,11 @@ class Usuario:
         """Añade una caja al inventario."""
         self.inventario_cajas.append(caja)
 
-    def abrir_caja(self, caja: Caja, id_nueva_arma: int) -> Optional[Arma]:
+    def abrir_caja(self, caja: Caja, id_nueva_arma: Optional[int] = None, generador: Optional[Any] = None) -> Optional[Arma]:
         """Abre una caja de su inventario, la consume y agrega el arma obtenida."""
         if caja in self.inventario_cajas:
             self.inventario_cajas.remove(caja)
-            arma_obtenida = caja.abrir(id_nueva_arma)
+            arma_obtenida = caja.abrir(id_nueva_arma=id_nueva_arma, generador=generador)
             self.agregar_arma(arma_obtenida)
             return arma_obtenida
         return None

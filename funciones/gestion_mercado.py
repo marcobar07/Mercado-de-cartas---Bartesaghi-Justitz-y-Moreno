@@ -16,19 +16,37 @@ from .soporte_global import (
 )
 
 
-def gestionar_compra_y_apertura_caja(usuario: Any, caja: Any) -> Dict[str, Any]:
+def gestionar_compra_y_apertura_caja(
+    usuario: Any,
+    caja: Any,
+    generador: Optional[Any] = None,
+    auditor: Optional[Any] = None
+) -> Dict[str, Any]:
     """
     Gestiona la compra de una caja y su posterior apertura:
     1. Valida si el usuario tiene fondos para la caja con usuario.gastar_fondos().
     2. Agrega la caja al inventario con usuario.agregar_caja().
-    3. Genera un ID único mediante la función global generar_siguiente_id().
-    4. Abre la caja con usuario.abrir_caja() (que invoca caja.abrir() usando la semilla).
+    3. Genera un ID único mediante Generador o la función global generar_siguiente_id().
+    4. Abre la caja con usuario.abrir_caja() (que invoca caja.abrir()).
     5. Actualiza y calcula el valor del arma obtenida con arma.calcular_valor().
-    6. Evalúa la rentabilidad con la función global evaluar_rentabilidad_apertura().
-    7. Registra la transacción con la función global registrar_evento().
+    6. Evalúa la rentabilidad con Auditor o evaluar_rentabilidad_apertura().
+    7. Registra la transacción con Auditor o registrar_evento().
     """
+    gen = generador if generador is not None else getattr(caja, "generador", None)
+    aud = auditor
+
+    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
+        if aud is not None:
+            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+
+    def _eval(precio_c: int, val_a: int):
+        if aud is not None:
+            return aud.evaluar_rentabilidad_apertura(precio_c, val_a)
+        return evaluar_rentabilidad_apertura(precio_c, val_a)
+
     if not usuario.gastar_fondos(caja.precio):
-        registrar_evento(
+        _reg(
             tipo="ERROR_COMPRA_CAJA",
             descripcion=f"El usuario {usuario.id} no posee fondos suficientes (${usuario.fondos}) para comprar {caja.nombre} (${caja.precio}).",
             datos={"usuario": usuario.id, "fondos": usuario.fondos, "precio_caja": caja.precio}
@@ -43,11 +61,13 @@ def gestionar_compra_y_apertura_caja(usuario: Any, caja: Any) -> Dict[str, Any]:
     # Asignar la caja comprada al inventario
     usuario.agregar_caja(caja)
 
-    # Generar nuevo ID único con la función global
-    nuevo_id = generar_siguiente_id()
-
-    # Abrir la caja (consume la caja del inventario y asigna el arma obtenida)
-    arma_obtenida = usuario.abrir_caja(caja, nuevo_id)
+    # Abrir la caja con ID del generador si está disponible
+    if gen is not None:
+        nuevo_id = gen.generar_siguiente_id()
+        arma_obtenida = usuario.abrir_caja(caja, id_nueva_arma=nuevo_id, generador=gen)
+    else:
+        nuevo_id = generar_siguiente_id()
+        arma_obtenida = usuario.abrir_caja(caja, nuevo_id)
 
     if arma_obtenida is None:
         return {
@@ -60,11 +80,11 @@ def gestionar_compra_y_apertura_caja(usuario: Any, caja: Any) -> Dict[str, Any]:
     # Asegurar el cálculo del valor del arma llamando a su método
     arma_obtenida.calcular_valor()
 
-    # Evaluar rentabilidad con la función global
-    rentabilidad = evaluar_rentabilidad_apertura(caja.precio, arma_obtenida.valor)
+    # Evaluar rentabilidad
+    rentabilidad = _eval(caja.precio, arma_obtenida.valor)
 
-    # Registrar el evento global
-    registrar_evento(
+    # Registrar el evento
+    _reg(
         tipo="APERTURA_CAJA",
         descripcion=f"{usuario.id} abrió {caja.nombre} y obtuvo {arma_obtenida.skin} valorada en ${arma_obtenida.valor}.",
         datos={
@@ -93,18 +113,26 @@ def gestionar_publicacion_oferta(
     vendedor: Any,
     arma: Any,
     precio_personalizado: Optional[int] = None,
-    margen_sugerido: float = 0.0
+    margen_sugerido: float = 0.0,
+    auditor: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Gestiona la publicación de un arma en el mercado:
     1. Verifica que el arma pertenezca al inventario del vendedor.
     2. Invoca arma.calcular_valor() para conocer su cotización.
-    3. Si no se indica precio, calcula un precio sugerido con la función global calcular_precio_sugerido().
+    3. Si no se indica precio, calcula un precio sugerido (mediante Auditor o función global).
     4. Invoca mercado.publicar_oferta(vendedor, arma, precio).
-    5. Registra el evento con la función global registrar_evento().
+    5. Registra el evento (mediante Auditor o función global).
     """
+    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
+
+    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
+        if aud is not None:
+            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+
     if arma not in vendedor.inventario_armas:
-        registrar_evento(
+        _reg(
             tipo="ERROR_PUBLICACION",
             descripcion=f"{vendedor.id} intentó publicar un arma que no está en su inventario.",
             datos={"vendedor": vendedor.id, "arma_id": getattr(arma, "id", None)}
@@ -118,12 +146,15 @@ def gestionar_publicacion_oferta(
     if precio_personalizado is not None and precio_personalizado > 0:
         precio_final = precio_personalizado
     else:
-        precio_final = calcular_precio_sugerido(valor_base, margen_sugerido)
+        if aud is not None:
+            precio_final = aud.calcular_precio_sugerido(valor_base, margen_sugerido)
+        else:
+            precio_final = calcular_precio_sugerido(valor_base, margen_sugerido)
 
     # Publicar oferta a través del método de Mercado
     oferta = mercado.publicar_oferta(vendedor, arma, precio_final)
 
-    registrar_evento(
+    _reg(
         tipo="PUBLICACION_OFERTA",
         descripcion=f"{vendedor.id} publicó {arma.skin} en el mercado por ${precio_final}.",
         datos={
@@ -150,7 +181,8 @@ def gestionar_compra_oferta(
     comprador: Any,
     oferta: Any,
     aplicar_comision: bool = True,
-    tasa_comision: float = TASA_COMISION_DEFAULT
+    tasa_comision: float = TASA_COMISION_DEFAULT,
+    auditor: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Gestiona de forma integral la compra de un arma publicada en el mercado:
@@ -158,16 +190,21 @@ def gestionar_compra_oferta(
     2. Valida que la oferta esté activa en mercado.ofertas_activas.
     3. Valida que el comprador tenga fondos suficientes.
     4. Ejecuta mercado.comprar_oferta(oferta, comprador).
-    5. Si aplica comisión, calcula la comisión global con calcular_comision_mercado(),
-       la retiene de los fondos del vendedor con vendedor.gastar_fondos().
+    5. Si aplica comisión, calcula la comisión y la retiene de los fondos del vendedor,
+       acumulándola en Auditor mediante acumular_comision() o en soporte global si no se pasa Auditor.
     6. Actualiza los valores de inventario de ambos usuarios con usuario.valor_inventario().
-    7. Registra el evento detallado con la función global registrar_evento().
+    7. Registra el evento detallado con Auditor o con registrar_evento().
     """
-    import funciones.soporte_global as soporte
+    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
+
+    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
+        if aud is not None:
+            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
 
     # Validación 1: Auto-compra
     if comprador.id == oferta.vendedor.id:
-        registrar_evento(
+        _reg(
             tipo="ERROR_COMPRA_OFERTA",
             descripcion=f"{comprador.id} intentó comprar su propia oferta.",
             datos={"usuario": comprador.id, "arma": oferta.arma.skin}
@@ -176,7 +213,7 @@ def gestionar_compra_oferta(
 
     # Validación 2: Oferta activa
     if oferta not in mercado.ofertas_activas:
-        registrar_evento(
+        _reg(
             tipo="ERROR_COMPRA_OFERTA",
             descripcion=f"La oferta para {oferta.arma.skin} no está activa en el mercado.",
             datos={"oferta_estado": oferta.estado}
@@ -185,7 +222,7 @@ def gestionar_compra_oferta(
 
     # Validación 3: Fondos del comprador
     if comprador.fondos < oferta.precio:
-        registrar_evento(
+        _reg(
             tipo="ERROR_COMPRA_OFERTA",
             descripcion=f"{comprador.id} no posee fondos suficientes (${comprador.fondos}) para comprar la oferta (${oferta.precio}).",
             datos={"comprador": comprador.id, "fondos": comprador.fondos, "precio": oferta.precio}
@@ -205,15 +242,21 @@ def gestionar_compra_oferta(
     # Gestión de comisión del mercado
     comision = 0
     if aplicar_comision:
-        comision = calcular_comision_mercado(precio_transaccion, tasa_comision)
-        if vendedor.gastar_fondos(comision):
-            soporte._fondos_comisiones_mercado += comision
+        if aud is not None:
+            comision = aud.calcular_comision_mercado(precio_transaccion, tasa_comision)
+            if vendedor.gastar_fondos(comision):
+                aud.acumular_comision(comision)
+        else:
+            comision = calcular_comision_mercado(precio_transaccion, tasa_comision)
+            if vendedor.gastar_fondos(comision):
+                import funciones.soporte_global as soporte
+                soporte._fondos_comisiones_mercado += comision
 
     # Auditoría de valor de inventarios actualizados
     valor_inv_comprador = comprador.valor_inventario()
     valor_inv_vendedor = vendedor.valor_inventario()
 
-    registrar_evento(
+    _reg(
         tipo="TRANSACCION_COMPLETADA",
         descripcion=f"{comprador.id} compró {arma_transaccionada.skin} a {vendedor.id} por ${precio_transaccion} (comisión: ${comision}).",
         datos={
@@ -241,15 +284,27 @@ def gestionar_compra_oferta(
     }
 
 
-def gestionar_cancelacion_oferta(mercado: Any, solicitante: Any, oferta: Any) -> Dict[str, Any]:
+def gestionar_cancelacion_oferta(
+    mercado: Any,
+    solicitante: Any,
+    oferta: Any,
+    auditor: Optional[Any] = None
+) -> Dict[str, Any]:
     """
     Gestiona la cancelación de una oferta:
     1. Verifica que el solicitante sea el vendedor legítimo.
     2. Invoca mercado.cancelar_oferta(oferta), devolviendo el arma al inventario.
-    3. Registra el evento en la función global registrar_evento().
+    3. Registra el evento con Auditor o registrar_evento().
     """
+    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
+
+    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
+        if aud is not None:
+            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+
     if solicitante.id != oferta.vendedor.id:
-        registrar_evento(
+        _reg(
             tipo="ERROR_CANCELACION",
             descripcion=f"{solicitante.id} no tiene permiso para cancelar la oferta de {oferta.vendedor.id}.",
             datos={"solicitante": solicitante.id, "vendedor": oferta.vendedor.id}
@@ -261,7 +316,7 @@ def gestionar_cancelacion_oferta(mercado: Any, solicitante: Any, oferta: Any) ->
 
     mercado.cancelar_oferta(oferta)
 
-    registrar_evento(
+    _reg(
         tipo="CANCELACION_OFERTA",
         descripcion=f"{solicitante.id} canceló su oferta por {oferta.arma.skin}. El arma regresó a su inventario.",
         datos={"vendedor": solicitante.id, "arma": oferta.arma.skin}
@@ -313,9 +368,17 @@ def gestionar_liquidacion_masiva(
     mercado: Any,
     usuario: Any,
     valor_maximo_corte: int,
-    descuento_liquidacion: float = 0.15
+    descuento_liquidacion: float = 0.15,
+    auditor: Optional[Any] = None
 ) -> Dict[str, Any]:
     """Vende o publica en lote todas las armas de bajo valor de un usuario."""
+    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
+
+    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
+        if aud is not None:
+            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
+
     armas_a_liquidar = [
         arma for arma in list(usuario.inventario_armas)
         if arma.calcular_valor() <= valor_maximo_corte
@@ -327,12 +390,13 @@ def gestionar_liquidacion_masiva(
             mercado=mercado,
             vendedor=usuario,
             arma=arma,
-            margen_sugerido=-descuento_liquidacion
+            margen_sugerido=-descuento_liquidacion,
+            auditor=aud
         )
         if res["exito"]:
             ofertas_creadas.append(res["oferta"])
 
-    registrar_evento(
+    _reg(
         tipo="LIQUIDACION_MASIVA",
         descripcion=f"{usuario.id} liquidó {len(ofertas_creadas)} armas en el mercado.",
         datos={"usuario": usuario.id, "cantidad_liquidada": len(ofertas_creadas)}
@@ -345,8 +409,14 @@ def gestionar_liquidacion_masiva(
     }
 
 
-def gestionar_informe_completo_mercado(mercado: Any, usuarios: Optional[List[Any]] = None) -> Dict[str, Any]:
+def gestionar_informe_completo_mercado(
+    mercado: Any,
+    usuarios: Optional[List[Any]] = None,
+    auditor: Optional[Any] = None
+) -> Dict[str, Any]:
     """Genera un informe integral del mercado y balance patrimonial de los usuarios."""
+    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
+
     total_ofertas_activas = len(mercado.ofertas_activas)
     valor_acumulado_activas = sum(o.precio for o in mercado.ofertas_activas)
 
@@ -367,20 +437,23 @@ def gestionar_informe_completo_mercado(mercado: Any, usuarios: Optional[List[Any
                 "valor_total_inventario": u.valor_inventario()
             })
 
+    fondos_comisiones = aud.obtener_fondos_comisiones() if aud is not None else obtener_fondos_comisiones()
+    total_eventos = len(aud.obtener_historial_eventos()) if aud is not None else len(obtener_historial_eventos())
+
     informe = {
         "ofertas_activas": total_ofertas_activas,
         "valor_en_venta_activa": valor_acumulado_activas,
         "total_ventas_concluidas": len(ventas_concluidas),
         "total_canceladas": len(ofertas_canceladas),
         "volumen_total_transaccionado": volumen_ventas,
-        "fondos_comisiones_mercado": obtener_fondos_comisiones(),
+        "fondos_comisiones_mercado": fondos_comisiones,
         "arma_mas_cara_vendida": {
             "skin": oferta_mas_cara.arma.skin,
             "precio": oferta_mas_cara.precio,
             "comprador": oferta_mas_cara.comprador.id if oferta_mas_cara.comprador else None
         } if oferta_mas_cara else None,
         "usuarios": resumen_usuarios,
-        "total_eventos_registrados": len(obtener_historial_eventos())
+        "total_eventos_registrados": total_eventos
     }
 
     return informe
