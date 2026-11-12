@@ -77,6 +77,34 @@ class TestRarezasYArmas(unittest.TestCase):
         self.assertGreater(valor, 0)
         self.assertEqual(ak.valor, valor)
 
+    def test_multiplicadores_aportados_por_subclase(self):
+        self.assertEqual(Ak47.multiplicador, 2.0)
+        self.assertEqual(AWP.multiplicador, 1.5)
+        self.assertEqual(Glock.multiplicador, 1.2)
+        self.assertEqual(ArmaBlanca.multiplicador, 3.0)
+
+    def test_formula_unificada_no_sobreescrita_en_subclases(self):
+        # La fórmula reside únicamente en Arma; las subclases solo aportan datos (multiplicador)
+        self.assertNotIn("calcular_valor", Ak47.__dict__)
+        self.assertNotIn("calcular_valor", AWP.__dict__)
+        self.assertNotIn("calcular_valor", Glock.__dict__)
+        self.assertNotIn("calcular_valor", ArmaBlanca.__dict__)
+
+    def test_stattrack_inverso_solo_en_arma_blanca(self):
+        # ArmaBlanca: no stattrack => 1.5x, stattrack => 1.0x
+        cuchillo_sin_stattrack = ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, stattrack=False)
+        cuchillo_con_stattrack = ArmaBlanca(id_arma=2, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, stattrack=True)
+        valor_sin = cuchillo_sin_stattrack.calcular_valor()
+        valor_con = cuchillo_con_stattrack.calcular_valor()
+        self.assertGreater(valor_sin, valor_con)
+        self.assertAlmostEqual(valor_sin / valor_con, 1.5, delta=0.01)
+
+        # Arma convencional: no stattrack => 1.0x, stattrack => 1.5x
+        ak_sin_stattrack = Ak47(id_arma=3, skin="Inheritance", desgaste=0.1, patron=100, rareza="roja", stattrack=False)
+        ak_con_stattrack = Ak47(id_arma=4, skin="Inheritance", desgaste=0.1, patron=100, rareza="roja", stattrack=True)
+        self.assertGreater(ak_con_stattrack.calcular_valor(), ak_sin_stattrack.calcular_valor())
+        self.assertAlmostEqual(ak_con_stattrack.valor / ak_sin_stattrack.valor, 1.5, delta=0.01)
+
 
 class TestAperturaDeCajas(unittest.TestCase):
     def setUp(self):
