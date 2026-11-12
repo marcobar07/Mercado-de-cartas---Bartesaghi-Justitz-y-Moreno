@@ -26,6 +26,9 @@ VALORES_RAREZA: Dict[str, int] = {
 
 class Arma(ABC):
     """Clase abstracta base para todas las armas."""
+    multiplicador: float = 1.0
+    stattrack_inverso: bool = False
+
     def __init__(self, id_arma: int, skin: str, desgaste: float, patron: int, rareza: str, stattrack: bool, tipo: Optional[str] = None):
         self.id = id_arma
         self.skin = skin
@@ -49,16 +52,26 @@ class Arma(ABC):
         self.stattrack = stattrack
         self.valor: Optional[int] = None
 
+    def calcular_multiplicador_stattrack(self) -> float:
+        """
+        Retorna el multiplicador por StatTrak.
+        En armas con stattrack_inverso (ArmaBlanca), si no es StatTrak es 1.5 y si es StatTrak es 1.0.
+        En armas convencionales, si es StatTrak es 1.5 y si no es StatTrak es 1.0.
+        """
+        if self.stattrack_inverso:
+            return 1.0 if self.stattrack else 1.5
+        return 1.5 if self.stattrack else 1.0
+
     def calcular_valor(self) -> int:
         """
-        Calcula el valor del arma según su rareza, patrón, desgaste y si es StatTrak,
-        guarda el resultado en self.valor y lo retorna.
+        Calcula el valor del arma según su rareza, patrón, desgaste, si es StatTrak
+        y el multiplicador de la subclase de arma, guarda el resultado en self.valor y lo retorna.
         """
         # 1. Valor base según la Rareza obtenido del diccionario:
         base_rareza = VALORES_RAREZA[self.rareza]
 
-        # 2. Multiplicador o bonificación por StatTrak:
-        multiplicador_stattrack = 1.5 if self.stattrack else 1.0  
+        # 2. Multiplicador o bonificación por StatTrak (determinado según la subclase):
+        multiplicador_stattrack = self.calcular_multiplicador_stattrack()
 
         # 3. Factor por desgaste (self.desgaste es un float entre 0.00 y 1.00):
         factor_desgaste = ((2 - self.desgaste)**3) / 2  
@@ -66,43 +79,32 @@ class Arma(ABC):
         # 4. Factor o bonificación por patrón (self.patron es un número entero entre 1 y 1000):
         factor_patron = 1 + ((self.patron / 50)**3) / 2
 
-        # 5. Fórmula final
-        valor_calculado = int(base_rareza * multiplicador_stattrack * factor_desgaste * factor_patron)
+        # 5. Multiplicador aportado por cada subclase:
+        multiplicador_subclase = self.multiplicador
+
+        # 6. Fórmula final unificada en la clase base:
+        valor_calculado = int(base_rareza * multiplicador_stattrack * factor_desgaste * factor_patron * multiplicador_subclase)
 
         self.valor = valor_calculado
         return self.valor
 
 
 class ArmaBlanca(Arma):
+    multiplicador: float = 3.0
+    stattrack_inverso: bool = True
+
     def __init__(self, id_arma: int, skin: str, tipo: str, desgaste: float, patron: int, stattrack: bool, rareza: str = "dorada"):
         super().__init__(id_arma, skin, desgaste, patron, rareza, stattrack, tipo=tipo)
 
-    def calcular_valor(self) -> int:
-        super().calcular_valor()
-        multiplicador_stattrack = 1.5 if self.stattrack else 1.0 
-        self.valor = int(self.valor / multiplicador_stattrack)  
-        multiplicador_inverso = 1.0 if self.stattrack else 1.5 
-        self.valor = int(self.valor * 3 * multiplicador_inverso)
-        return self.valor
-
 
 class Ak47(Arma):
-    def calcular_valor(self) -> int:
-        super().calcular_valor()
-        self.valor = int(self.valor * 2)
-        return self.valor
+    multiplicador: float = 2.0
 
 
 class AWP(Arma):
-    def calcular_valor(self) -> int:
-        super().calcular_valor()
-        self.valor = int(self.valor * 1.5)
-        return self.valor
+    multiplicador: float = 1.5
 
 
 class Glock(Arma):
-    def calcular_valor(self) -> int:
-        super().calcular_valor()
-        self.valor = int(self.valor * 1.2)
-        return self.valor
+    multiplicador: float = 1.2
 
