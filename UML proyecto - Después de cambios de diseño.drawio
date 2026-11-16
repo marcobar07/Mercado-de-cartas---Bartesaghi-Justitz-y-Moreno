@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="SKppk2QqJC4QrRe4hdgU">
-    <mxGraphModel dx="2343" dy="2007" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2091" dy="1854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -23,6 +23,19 @@
         </mxCell>
         <mxCell id="Uhhi5DIAvhjH37RcvFA--23" connectable="0" parent="g_JKHQNXmLcsmQHEutHY-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Vendedor" vertex="1">
           <mxGeometry relative="1" x="-0.5355" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-14" edge="1" parent="1" source="rf0N3lFMeh3t1G8nTUlj-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;endArrow=diamond;endFill=1;" target="eLFU2_iNGovAbMR26jNq-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-15" connectable="0" parent="eLFU2_iNGovAbMR26jNq-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.7234" y="3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-16" connectable="0" parent="eLFU2_iNGovAbMR26jNq-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="0...n" vertex="1">
+          <mxGeometry relative="1" x="-0.7856" y="-2" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
@@ -359,6 +372,23 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-11" edge="1" parent="1" source="Uhhi5DIAvhjH37RcvFA--24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;endArrow=diamond;endFill=1;" target="eLFU2_iNGovAbMR26jNq-1">
+          <mxGeometry relative="1" x="-0.106" as="geometry">
+            <Array as="points">
+              <mxPoint x="-60" y="-210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-12" connectable="0" parent="eLFU2_iNGovAbMR26jNq-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.9027" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-13" connectable="0" parent="eLFU2_iNGovAbMR26jNq-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.9055" y="6" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="Uhhi5DIAvhjH37RcvFA--24" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Mercado" vertex="1">
           <mxGeometry height="303" width="310" x="90" y="-410" as="geometry" />
         </mxCell>
@@ -370,6 +400,23 @@
         </mxCell>
         <mxCell id="Uhhi5DIAvhjH37RcvFA--27" parent="Uhhi5DIAvhjH37RcvFA--24" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ publicar_oferta(vendedor, arma, precio): Oferta&lt;br&gt;+ cancelar_oferta(oferta)&lt;br&gt;+ comprar_oferta(oferta, comprador): bool&lt;div&gt;LAS SIGUIENTES TODAVÍA NO ESTÁN IMPLEMENTADAS TODAVIA&lt;br&gt;+ buscar_activas(tipo, skin, rareza, precio_max): lista(Oferta)&lt;br&gt;+ ofertas_activas_de(usuario): lista(Oferta)&lt;br&gt;+ buscar_historial(arma, vendedor, comprador, estado, desde, hasta): lista(Oferta)&lt;br&gt;+ ventas_de(usuario): lista(Oferta)&lt;br&gt;+ compras_de(usuario): lista(Oferta)&lt;/div&gt;" vertex="1">
           <mxGeometry height="209" width="310" y="94" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-8" edge="1" parent="1" source="gVaGvzbShSsN6i3TofM4-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;endArrow=diamond;endFill=1;" target="eLFU2_iNGovAbMR26jNq-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-450" y="281.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-9" connectable="0" parent="eLFU2_iNGovAbMR26jNq-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.8732" y="-3" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-10" connectable="0" parent="eLFU2_iNGovAbMR26jNq-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.8403" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="gVaGvzbShSsN6i3TofM4-2" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Generador" vertex="1">
           <mxGeometry height="303" width="310" x="-630" y="465" as="geometry" />
@@ -383,6 +430,19 @@
         <mxCell id="gVaGvzbShSsN6i3TofM4-5" parent="gVaGvzbShSsN6i3TofM4-2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ obtener_semilla: int&lt;div&gt;+ modificar_semilla&lt;/div&gt;&lt;div&gt;+ alterar_semilla: int&lt;/div&gt;&lt;div&gt;+ choices(poblacion, weights, k): lista&lt;/div&gt;&lt;div&gt;+ uniform(a,b): float&lt;/div&gt;&lt;div&gt;+ randint(a,b): int&lt;/div&gt;&lt;div&gt;+ random_float(): float&lt;/div&gt;&lt;div&gt;+ seleccionar_item_lootpool(lootpool, pesos): dict&lt;/div&gt;&lt;div&gt;+ generar_desgaste(): float&lt;/div&gt;&lt;div&gt;+ generar_patron(): int&lt;/div&gt;&lt;div&gt;+ determinar_stattrack(): bool&lt;/div&gt;&lt;div&gt;+ generar_siguiente_id(): int&lt;/div&gt;&lt;div&gt;+ obtener_contador_id(): int&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="209" width="310" y="94" as="geometry" />
         </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-5" edge="1" parent="1" source="gVaGvzbShSsN6i3TofM4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;endArrow=diamond;endFill=1;" target="eLFU2_iNGovAbMR26jNq-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-6" connectable="0" parent="eLFU2_iNGovAbMR26jNq-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.8731" y="4" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-7" connectable="0" parent="eLFU2_iNGovAbMR26jNq-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.8964" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="gVaGvzbShSsN6i3TofM4-6" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Auditor" vertex="1">
           <mxGeometry height="303" width="310" x="-690" y="-210" as="geometry" />
         </mxCell>
@@ -394,6 +454,18 @@
         </mxCell>
         <mxCell id="gVaGvzbShSsN6i3TofM4-9" parent="gVaGvzbShSsN6i3TofM4-6" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ registrar_evento(tipo, descripcion, datos): dict&lt;/div&gt;&lt;div&gt;+ obtener_historial_eventos(): lista de diccionarios&lt;/div&gt;&lt;div&gt;+ limpiar_historial_eventos()&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;+ obtener_fondos_comisiones(): int&lt;/div&gt;&lt;div&gt;+ acumular_comision(monto)&lt;/div&gt;&lt;div&gt;+ calcular_comision_mercado(monto, tasa): int&lt;/div&gt;&lt;div&gt;+ calcular_precio_sugerido(valor_base, margen_porcentaje): int&lt;/div&gt;&lt;div&gt;+ evaluar_rentabilidad_apertura(precio_caja, valor_arma): dict&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="209" width="310" y="94" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Simulación" vertex="1">
+          <mxGeometry height="230" width="310" x="-280" y="93" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-2" parent="eLFU2_iNGovAbMR26jNq-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ nombre: str&lt;/div&gt;&lt;div&gt;+ auditor: Auditor&lt;/div&gt;&lt;div&gt;+ usuarios: lista(Usuario)&lt;/div&gt;&lt;div&gt;+ generador: Generador&lt;/div&gt;&lt;div&gt;+ mercado: Mercado&lt;/div&gt;&lt;div&gt;+ contador_cajas: int&lt;/div&gt;" vertex="1">
+          <mxGeometry height="134" width="310" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-3" parent="eLFU2_iNGovAbMR26jNq-1" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="310" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="eLFU2_iNGovAbMR26jNq-4" parent="eLFU2_iNGovAbMR26jNq-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+ crear_usuario(id_usuario, fondos): Usuario&lt;/div&gt;&lt;div&gt;+ borrar_usuario(id_usuario): Bool&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="62" width="310" y="168" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
