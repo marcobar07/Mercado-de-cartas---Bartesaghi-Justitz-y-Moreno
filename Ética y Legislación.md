@@ -1,4 +1,4 @@
-1. Datos que maneja la aplicación
+1) Datos que maneja la aplicación
 
 Todos los datos viven en memoria mientras dura la ejecución. Tampoco pedimos nombre, correo ni edad. Es una decisión de minimización: lo que no se recolecta no se puede filtrar.
 
@@ -8,7 +8,7 @@ Junto al alias se guardan los fondos y el inventario de cada usuario. Por cada t
 
 Los datos que más cuidado necesitan son los que se derivan de otros. Cada Oferta y cada evento del Auditor llevan la fecha y hora en que ocurrieron. Su finalidad es ordenar la auditoría, pero en conjunto revelan cuándo juega cada persona. Además, la frecuencia de los eventos AGREGAR_FONDOS y APERTURA_CAJA puede mostrar un patrón de juego compulsivo aunque la moneda sea ficticia. Ninguno de esos datos es sensible por sí solo, pero juntos permiten inferir información importante.
 
-2. Riesgo ético concreto y transparencia de probabilidades
+2) Riesgo ético concreto y transparencia de probabilidades
 
 En 2018, la Comisión de Juego de Bélgica consideró juego de azar a las loot boxes pagas, incluidas las de Counter-Strike, porque hay una apuesta, el azar decide el resultado y se puede ganar o perder. Nuestras cajas tienen la misma estructura que las lootboxes del anteror juego mencionado.
 
@@ -22,7 +22,7 @@ Efecto sobre menores
 
 La aplicación no verifica la edad y, por lo dicho en el punto 1, no debería pedirla. Aunque las probabilidades sean visibles y no haya ninguna forma de cargar dinero real, un menor que aprende que "abrir cajas es rentable" aprende la lógica de las apuestas.
 
-3. Reglas inviolables
+3) Reglas inviolables
 
 1. El dinero no aparece ni desaparece en una transacción.. En toda compra entre usuarios, la suma de los fondos de los usuarios más el fondo de comisiones es igual antes y después. Solo hay dos excepciones explícitas: cargar saldo (entra dinero) y comprar una caja (sale dinero).
 2. Ningún saldo es negativo, no se acepta ese estado. Si una transacción resultaría en estado negaativo, se rechaza.
