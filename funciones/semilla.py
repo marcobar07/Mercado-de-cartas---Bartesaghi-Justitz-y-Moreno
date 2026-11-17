@@ -94,7 +94,7 @@ def generar_desgaste(min_val: float = 0.00, max_val: float = 1.00, decimales: in
     return round(uniform(min_val, max_val), decimales)
 
 
-def generar_patron(min_val: int = 1, max_val: int = 1000) -> int:
+def generar_patron(min_val: int = 1, max_val: int = 60) -> int:
     """Genera un patrón numérico entero para el arma entre min_val y max_val."""
     return randint(min_val, max_val)
 

@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="SKppk2QqJC4QrRe4hdgU">
-    <mxGraphModel dx="1880" dy="1726" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2091" dy="1854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -258,12 +258,34 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="UZf77S_I_Efwxdg8oT0Y-1" edge="1" parent="1" source="rf0N3lFMeh3t1G8nTUlj-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;" target="rf0N3lFMeh3t1G8nTUlj-1">
+          <mxGeometry relative="1" x="-0.0667" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UZf77S_I_Efwxdg8oT0Y-2" connectable="0" parent="UZf77S_I_Efwxdg8oT0Y-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="Propietario" vertex="1">
+          <mxGeometry relative="1" x="0.6465" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UZf77S_I_Efwxdg8oT0Y-3" connectable="0" parent="UZf77S_I_Efwxdg8oT0Y-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="0 o 1" vertex="1">
+          <mxGeometry relative="1" x="0.9271" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UZf77S_I_Efwxdg8oT0Y-4" connectable="0" parent="UZf77S_I_Efwxdg8oT0Y-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-0.9503" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="rf0N3lFMeh3t1G8nTUlj-34" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&quot;abstract&quot; Arma" vertex="1">
           <mxGeometry height="310" width="200" x="840" y="360" as="geometry">
             <mxRectangle height="30" width="130" x="840" y="360" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="rf0N3lFMeh3t1G8nTUlj-35" parent="rf0N3lFMeh3t1G8nTUlj-34" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+id:int&lt;/div&gt;&lt;div&gt;+Skin: Str&lt;/div&gt;&lt;div&gt;+Tipo:Str&lt;/div&gt;&lt;div&gt;+Desgaste:Float (0 a 1)&lt;/div&gt;&lt;div&gt;+Patrón: int (1 al 1000)&lt;/div&gt;&lt;div&gt;+Rareza: Str&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+StatTrack: bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+Valor: int&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+multiplicador: 1.0&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+stattrack_inverso: False&lt;/span&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="rf0N3lFMeh3t1G8nTUlj-35" parent="rf0N3lFMeh3t1G8nTUlj-34" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;+id:int&lt;/div&gt;&lt;div&gt;+Skin: Str&lt;/div&gt;&lt;div&gt;+Tipo:Str&lt;/div&gt;&lt;div&gt;+Desgaste:Float (0 a 1)&lt;/div&gt;&lt;div&gt;+Patrón: int (1 al 60)&lt;/div&gt;&lt;div&gt;+Rareza: Str&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+StatTrack: bool&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+Valor: int&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+multiplicador: 1.0&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+stattrack_inverso: False&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;+propietario: Usuario&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="178" width="200" y="26" as="geometry" />
         </mxCell>
         <mxCell id="rf0N3lFMeh3t1G8nTUlj-36" parent="rf0N3lFMeh3t1G8nTUlj-34" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">

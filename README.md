@@ -132,7 +132,7 @@ Al seleccionar un usuario, se muestra su saldo y valor patrimonial junto a 7 opc
 4. **Abrir cajas**: Consume una caja del inventario y muestra un desglose con el arma obtenida, rentabilidad y ROI.
 5. **Publicar oferta en el mercado**: Selección de arma con cotización base y precio sugerido (+10%) o personalizado.
 6. **Buscar ofertas en el mercado**:
-   - Filtrado avanzado por: rango de precios, tipo de arma, rareza, skin específica, StatTrak, rango de desgaste (0.00-1.00) y rango de patrón (1-1000).
+   - Filtrado avanzado por: rango de precios, tipo de arma, rareza, skin específica, StatTrak, rango de desgaste (0.00-1.00) y rango de patrón (1-60).
    - Opción de **compra inmediata** de cualquier oferta encontrada, con retención de comisión y transferencia al comprador.
 7. **Agregar saldo**: Acreditación directa de fondos registrada en el auditor.
 
@@ -153,4 +153,4 @@ Para correr las pruebas automatizadas:
 ```bash
 python -m unittest test_mercado.py
 ```
-*(17 pruebas unitarias completas que cubren: determinismo y mutación de semilla, validaciones de rarezas, cálculo unificado de valor de armas, multiplicador inverso de armas blancas, apertura de cajas, gestión de mercado, compras, cancelaciones, retención de comisiones y aislamiento entre múltiples simulaciones concurrentes).*
+*(22 pruebas unitarias completas que cubren: determinismo y mutación de semilla, validaciones de rarezas, cálculo unificado de valor de armas, multiplicador inverso de armas blancas, apertura de cajas, gestión de mercado, compras, cancelaciones, retención de comisiones, aislamiento entre simulaciones concurrentes, no duplicación de armas, propiedad única de armas, protección contra gastos negativos, validación estricta de precios y rollback ante fallos).*

@@ -61,18 +61,31 @@ def gestionar_compra_y_apertura_caja(
     # Asignar la caja comprada al inventario
     usuario.agregar_caja(caja)
 
-    # Abrir la caja con ID del generador si está disponible
-    if gen is not None:
-        nuevo_id = gen.generar_siguiente_id()
-        arma_obtenida = usuario.abrir_caja(caja, id_nueva_arma=nuevo_id, generador=gen)
-    else:
-        nuevo_id = generar_siguiente_id()
-        arma_obtenida = usuario.abrir_caja(caja, nuevo_id)
+    try:
+        # Abrir la caja con ID del generador si está disponible
+        if gen is not None:
+            nuevo_id = gen.generar_siguiente_id()
+            arma_obtenida = usuario.abrir_caja(caja, id_nueva_arma=nuevo_id, generador=gen)
+        else:
+            nuevo_id = generar_siguiente_id()
+            arma_obtenida = usuario.abrir_caja(caja, nuevo_id)
 
-    if arma_obtenida is None:
+        if arma_obtenida is None:
+            raise ValueError("Error al abrir la caja.")
+    except Exception as e:
+        # Reversión completa: si la caja no fue abierta o fue devuelta, removerla del inventario
+        if caja in usuario.inventario_cajas:
+            usuario.inventario_cajas.remove(caja)
+        # Reintegrar los fondos gastados
+        usuario.conseguir_fondos(caja.precio)
+        _reg(
+            tipo="ERROR_APERTURA_CAJA",
+            descripcion=f"Fallo durante la apertura de {caja.nombre} para {usuario.id}: {e}. Se reembolsaron ${caja.precio}.",
+            datos={"usuario": usuario.id, "error": str(e), "fondos_restaurados": usuario.fondos}
+        )
         return {
             "exito": False,
-            "motivo": "Error al abrir la caja",
+            "motivo": f"Fallo al abrir la caja ({e}). Fondos reembolsados.",
             "arma": None,
             "rentabilidad": None
         }
@@ -143,7 +156,14 @@ def gestionar_publicacion_oferta(
     valor_base = arma.calcular_valor()
 
     # Determinar el precio final de la oferta
-    if precio_personalizado is not None and precio_personalizado > 0:
+    if precio_personalizado is not None:
+        if precio_personalizado <= 0:
+            _reg(
+                tipo="ERROR_PUBLICACION",
+                descripcion=f"{vendedor.id} intentó publicar una oferta con precio no positivo: ${precio_personalizado}.",
+                datos={"vendedor": vendedor.id, "precio": precio_personalizado}
+            )
+            return {"exito": False, "motivo": "El precio de la oferta debe ser un número entero positivo mayor a 0.", "oferta": None}
         precio_final = precio_personalizado
     else:
         if aud is not None:
@@ -152,7 +172,15 @@ def gestionar_publicacion_oferta(
             precio_final = calcular_precio_sugerido(valor_base, margen_sugerido)
 
     # Publicar oferta a través del método de Mercado
-    oferta = mercado.publicar_oferta(vendedor, arma, precio_final)
+    try:
+        oferta = mercado.publicar_oferta(vendedor, arma, precio_final)
+    except Exception as e:
+        _reg(
+            tipo="ERROR_PUBLICACION",
+            descripcion=f"Error al publicar oferta de {vendedor.id}: {e}",
+            datos={"vendedor": vendedor.id, "error": str(e)}
+        )
+        return {"exito": False, "motivo": str(e), "oferta": None}
 
     _reg(
         tipo="PUBLICACION_OFERTA",

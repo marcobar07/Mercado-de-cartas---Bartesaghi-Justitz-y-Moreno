@@ -3,7 +3,7 @@ Módulo de clases de Armas y definición de Rarezas.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 # ==========================================
 # 1. RAREZAS (Lista y Diccionario)
@@ -34,6 +34,8 @@ class Arma(ABC):
         self.skin = skin
         self.tipo = tipo if tipo is not None else self.__class__.__name__
         self.desgaste = desgaste
+        if not isinstance(patron, int) or isinstance(patron, bool) or not (1 <= patron <= 60):
+            raise ValueError(f"El patrón debe ser un número entero entre 1 y 60, recibido: {patron}")
         self.patron = patron
 
         rareza_normalizada = rareza.lower()
@@ -51,6 +53,7 @@ class Arma(ABC):
 
         self.stattrack = stattrack
         self.valor: Optional[int] = None
+        self.propietario: Optional[Any] = None
 
     def calcular_multiplicador_stattrack(self) -> float:
         """

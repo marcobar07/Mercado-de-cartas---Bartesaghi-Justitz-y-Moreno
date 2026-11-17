@@ -282,7 +282,13 @@ def accion_abrir_cajas(sim: Simulacion, usuario: Usuario) -> None:
         if 1 <= idx <= len(usuario.inventario_cajas):
             caja_elegida = usuario.inventario_cajas[idx - 1]
             id_nueva_arma = sim.generador.generar_siguiente_id()
-            arma_obtenida = usuario.abrir_caja(caja_elegida, id_nueva_arma=id_nueva_arma, generador=sim.generador)
+            try:
+                arma_obtenida = usuario.abrir_caja(caja_elegida, id_nueva_arma=id_nueva_arma, generador=sim.generador)
+            except Exception as e:
+                print(f">> [ERROR] Ocurrió un fallo al intentar abrir la caja: {e}")
+                print(">> La caja no fue consumida y permanece en tu inventario.")
+                input("\nPresione ENTER para continuar...")
+                return
 
             if arma_obtenida is None:
                 print(">> [ERROR] Ocurrió un fallo al intentar abrir la caja.")
@@ -493,11 +499,11 @@ def accion_buscar_ofertas(sim: Simulacion, usuario: Usuario) -> None:
             d_max = None
 
         # 7. Rango de patrón
-        pat_min_txt = pedir_texto("9. Patrón mínimo (1 a 1000) (ENTER para omitir): ", permitir_vacio=True)
+        pat_min_txt = pedir_texto("9. Patrón mínimo (1 a 60) (ENTER para omitir): ", permitir_vacio=True)
         if pat_min_txt is None: return
         pat_min = int(pat_min_txt) if pat_min_txt.isdigit() else None
 
-        pat_max_txt = pedir_texto("10. Patrón máximo (1 a 1000) (ENTER para omitir): ", permitir_vacio=True)
+        pat_max_txt = pedir_texto("10. Patrón máximo (1 a 60) (ENTER para omitir): ", permitir_vacio=True)
         if pat_max_txt is None: return
         pat_max = int(pat_max_txt) if pat_max_txt.isdigit() else None
 

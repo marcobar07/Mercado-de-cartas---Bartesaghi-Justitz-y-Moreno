@@ -19,6 +19,8 @@ from creacion_de_clases import (
     VALORES_RAREZA,
     Generador,
     Auditor,
+    Caja,
+    Oferta,
 )
 
 
@@ -56,19 +58,33 @@ class TestSemillaYAleatoriedad(unittest.TestCase):
 class TestRarezasYArmas(unittest.TestCase):
     def test_rareza_invalida_lanza_error(self):
         with self.assertRaises(ValueError):
-            Glock(id_arma=1, skin="Test", desgaste=0.1, patron=100, rareza="arcoiris", stattrack=False)
+            Glock(id_arma=1, skin="Test", desgaste=0.1, patron=30, rareza="arcoiris", stattrack=False)
+
+    def test_patron_invalido_lanza_error(self):
+        # Patrón menor a 1 o mayor a 60 debe lanzar ValueError
+        with self.assertRaises(ValueError):
+            Glock(id_arma=1, skin="Test", desgaste=0.1, patron=0, rareza="azul", stattrack=False)
+        with self.assertRaises(ValueError):
+            Glock(id_arma=1, skin="Test", desgaste=0.1, patron=61, rareza="azul", stattrack=False)
+        with self.assertRaises(ValueError):
+            Glock(id_arma=1, skin="Test", desgaste=0.1, patron=-5, rareza="azul", stattrack=False)
+        # Límites válidos 1 y 60
+        g1 = Glock(id_arma=1, skin="Test", desgaste=0.1, patron=1, rareza="azul", stattrack=False)
+        g60 = Glock(id_arma=2, skin="Test", desgaste=0.1, patron=60, rareza="azul", stattrack=False)
+        self.assertEqual(g1.patron, 1)
+        self.assertEqual(g60.patron, 60)
 
     def test_arma_blanca_solo_acepta_rareza_dorada(self):
         with self.assertRaises(ValueError):
-            ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, rareza="azul", stattrack=False)
+            ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=30, rareza="azul", stattrack=False)
         
         # Con dorada no debe lanzar error
-        cuchillo = ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, rareza="dorada", stattrack=False)
+        cuchillo = ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=30, rareza="dorada", stattrack=False)
         self.assertEqual(cuchillo.rareza, "dorada")
 
     def test_arma_convencional_no_acepta_dorada(self):
         with self.assertRaises(ValueError):
-            Ak47(id_arma=1, skin="Redline", desgaste=0.1, patron=100, rareza="dorada", stattrack=False)
+            Ak47(id_arma=1, skin="Redline", desgaste=0.1, patron=30, rareza="dorada", stattrack=False)
 
     def test_calculo_valor_arma(self):
         ak = Ak47(id_arma=1, skin="Inheritance", desgaste=0.5, patron=50, rareza="roja", stattrack=False)
@@ -92,16 +108,16 @@ class TestRarezasYArmas(unittest.TestCase):
 
     def test_stattrack_inverso_solo_en_arma_blanca(self):
         # ArmaBlanca: no stattrack => 1.5x, stattrack => 1.0x
-        cuchillo_sin_stattrack = ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, stattrack=False)
-        cuchillo_con_stattrack = ArmaBlanca(id_arma=2, skin="Fade", tipo="Kukri", desgaste=0.1, patron=100, stattrack=True)
+        cuchillo_sin_stattrack = ArmaBlanca(id_arma=1, skin="Fade", tipo="Kukri", desgaste=0.1, patron=30, stattrack=False)
+        cuchillo_con_stattrack = ArmaBlanca(id_arma=2, skin="Fade", tipo="Kukri", desgaste=0.1, patron=30, stattrack=True)
         valor_sin = cuchillo_sin_stattrack.calcular_valor()
         valor_con = cuchillo_con_stattrack.calcular_valor()
         self.assertGreater(valor_sin, valor_con)
         self.assertAlmostEqual(valor_sin / valor_con, 1.5, delta=0.01)
 
         # Arma convencional: no stattrack => 1.0x, stattrack => 1.5x
-        ak_sin_stattrack = Ak47(id_arma=3, skin="Inheritance", desgaste=0.1, patron=100, rareza="roja", stattrack=False)
-        ak_con_stattrack = Ak47(id_arma=4, skin="Inheritance", desgaste=0.1, patron=100, rareza="roja", stattrack=True)
+        ak_sin_stattrack = Ak47(id_arma=3, skin="Inheritance", desgaste=0.1, patron=30, rareza="roja", stattrack=False)
+        ak_con_stattrack = Ak47(id_arma=4, skin="Inheritance", desgaste=0.1, patron=30, rareza="roja", stattrack=True)
         self.assertGreater(ak_con_stattrack.calcular_valor(), ak_sin_stattrack.calcular_valor())
         self.assertAlmostEqual(ak_con_stattrack.valor / ak_sin_stattrack.valor, 1.5, delta=0.01)
 
@@ -115,7 +131,7 @@ class TestAperturaDeCajas(unittest.TestCase):
         arma = caja.abrir(id_nueva_arma=10)
         self.assertIsNotNone(arma)
         self.assertTrue(0.0 <= arma.desgaste <= 1.0)
-        self.assertTrue(1 <= arma.patron <= 1000)
+        self.assertTrue(1 <= arma.patron <= 60)
         self.assertIn(arma.rareza, VALORES_RAREZA)
         self.assertGreater(arma.valor, 0)
 
@@ -307,6 +323,109 @@ class TestSimulacionesConcurrentesSinEstadoGlobal(unittest.TestCase):
         for ev in aud_b.obtener_historial_eventos():
             self.assertNotIn("Vendedor_A", ev["descripcion"])
             self.assertNotIn("Comprador_A", ev["descripcion"])
+
+
+class TestValidacionesYSeguridadTransaccional(unittest.TestCase):
+    def setUp(self):
+        self.mercado = Mercado()
+        self.usuario_a = Usuario("Usuario_A", fondos=1000)
+        self.usuario_b = Usuario("Usuario_B", fondos=1000)
+        self.arma_b = Ak47(id_arma=500, skin="Redline", desgaste=0.2, patron=30, rareza="roja", stattrack=False)
+        self.usuario_b.agregar_arma(self.arma_b)
+
+    def test_no_duplicar_arma_al_publicar_oferta(self):
+        # A intenta publicar el arma de B directamente en Mercado
+        with self.assertRaises(ValueError):
+            self.mercado.publicar_oferta(vendedor=self.usuario_a, arma=self.arma_b, precio=500)
+
+        # Verificar que el arma sigue únicamente en el inventario de B
+        self.assertIn(self.arma_b, self.usuario_b.inventario_armas)
+        self.assertNotIn(self.arma_b, self.usuario_a.inventario_armas)
+        self.assertEqual(len(self.mercado.ofertas_activas), 0)
+
+        # A intenta publicar con gestionar_publicacion_oferta
+        res = f.gestionar_publicacion_oferta(self.mercado, self.usuario_a, self.arma_b, precio_personalizado=500)
+        self.assertFalse(res["exito"])
+        self.assertIn("no posee", res["motivo"].lower())
+
+    def test_no_misma_arma_en_dos_inventarios(self):
+        # El arma pertenece a B. A intenta agregarla
+        with self.assertRaises(ValueError):
+            self.usuario_a.agregar_arma(self.arma_b)
+
+        # B intenta agregarla de nuevo en su propio inventario
+        with self.assertRaises(ValueError):
+            self.usuario_b.agregar_arma(self.arma_b)
+
+        # El arma sigue únicamente con B
+        self.assertEqual(len(self.usuario_b.inventario_armas), 1)
+        self.assertEqual(len(self.usuario_a.inventario_armas), 0)
+
+    def test_validacion_fondos_y_gasto_no_negativo(self):
+        # gastar_fondos con cantidad negativa debe lanzar ValueError
+        with self.assertRaises(ValueError):
+            self.usuario_a.gastar_fondos(-1_000_000)
+
+        # conseguir_fondos con cantidad negativa o cero debe lanzar ValueError
+        with self.assertRaises(ValueError):
+            self.usuario_a.conseguir_fondos(-500)
+        with self.assertRaises(ValueError):
+            self.usuario_a.conseguir_fondos(0)
+
+        # fondos es atributo protegido de solo lectura (no permite u.fondos = 999999)
+        with self.assertRaises(AttributeError):
+            self.usuario_a.fondos = 999999
+
+        # Fondos iniciales negativos lanzan ValueError
+        with self.assertRaises(ValueError):
+            Usuario("Invalido", fondos=-100)
+
+        # El saldo de A no se vio afectado por intentos ilegítimos
+        self.assertEqual(self.usuario_a.fondos, 1000)
+
+    def test_precio_oferta_debe_ser_positivo(self):
+        # Precio negativo en Mercado.publicar_oferta
+        with self.assertRaises(ValueError):
+            self.mercado.publicar_oferta(self.usuario_b, self.arma_b, precio=-300)
+
+        # Precio cero en Mercado.publicar_oferta
+        with self.assertRaises(ValueError):
+            self.mercado.publicar_oferta(self.usuario_b, self.arma_b, precio=0)
+
+        # Creación directa de Oferta con precio inválido
+        with self.assertRaises(ValueError):
+            Oferta(self.usuario_b, self.arma_b, precio=-100)
+
+        # Con gestionar_publicacion_oferta
+        res = f.gestionar_publicacion_oferta(self.mercado, self.usuario_b, self.arma_b, precio_personalizado=-300)
+        self.assertFalse(res["exito"])
+
+    def test_rollback_falla_apertura_caja_no_deja_rastros(self):
+        class CajaFalla(Caja):
+            def __init__(self, id_caja: int):
+                super().__init__(id_caja=id_caja, nombre="Caja Fallida", lootpool=[], precio=400)
+
+        caja_defectuosa = CajaFalla(id_caja=99)
+        usuario = Usuario("Usuario_Test_Rollback", fondos=1000)
+
+        # Intento de compra y apertura con fallo a mitad de camino
+        res = f.gestionar_compra_y_apertura_caja(usuario, caja_defectuosa)
+        self.assertFalse(res["exito"])
+
+        # Mecanismo de rollback: fondos intactos y sin residuos en inventario
+        self.assertEqual(usuario.fondos, 1000)
+        self.assertNotIn(caja_defectuosa, usuario.inventario_cajas)
+        self.assertEqual(len(usuario.inventario_armas), 0)
+
+        # Prueba de rollback en abrir_caja directamente
+        usuario.agregar_caja(caja_defectuosa)
+        self.assertIn(caja_defectuosa, usuario.inventario_cajas)
+
+        with self.assertRaises(ValueError):
+            usuario.abrir_caja(caja_defectuosa)
+
+        # La caja no se perdió y fue devuelta al inventario
+        self.assertIn(caja_defectuosa, usuario.inventario_cajas)
 
 
 if __name__ == "__main__":

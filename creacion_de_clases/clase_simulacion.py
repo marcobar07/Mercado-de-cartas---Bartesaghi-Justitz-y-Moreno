@@ -67,7 +67,7 @@ class Simulacion:
 
         usuario.inventario_armas.clear()
         usuario.inventario_cajas.clear()
-        usuario.fondos = 0
+        usuario._fondos = 0
 
         # 3. Eliminar de la simulación
         del self.usuarios[id_usuario]
