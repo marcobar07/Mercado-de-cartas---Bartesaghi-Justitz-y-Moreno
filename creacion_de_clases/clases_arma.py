@@ -76,7 +76,7 @@ class Arma(ABC):
         # 3. Factor por desgaste (self.desgaste es un float entre 0.00 y 1.00):
         factor_desgaste = ((2 - self.desgaste)**3) / 2  
 
-        # 4. Factor o bonificación por patrón (self.patron es un número entero entre 1 y 1000):
+        # 4. Factor o bonificación por patrón (self.patron es un número entero entre 1 y 60):
         factor_patron = 1 + ((self.patron / 50)**3) / 2
 
         # 5. Multiplicador aportado por cada subclase:

@@ -36,14 +36,14 @@ class Caja(ABC):
             pesos = [item["probabilidad"] for item in self.lootpool]
             item_elegido = gen.seleccionar_item_lootpool(self.lootpool, pesos)
             desgaste = gen.generar_desgaste(0.00, 1.00, 4)
-            patron = gen.generar_patron(1, 1000)
+            patron = gen.generar_patron(1, 60)
             stattrack = gen.determinar_stattrack(0.10)
         else:
             actual_id = id_nueva_arma if id_nueva_arma is not None else funciones.generar_siguiente_id()
             pesos = [item["probabilidad"] for item in self.lootpool]
             item_elegido = funciones.choices(self.lootpool, weights=pesos, k=1)[0]
             desgaste = round(funciones.uniform(0.00, 1.00), 4)
-            patron = funciones.randint(1, 1000)
+            patron = funciones.randint(1, 60)
             stattrack = funciones.random_float() < 0.10  # 10% de probabilidad de ser StatTrak
 
         # 2. Instanciación del arma según su clase
@@ -74,15 +74,15 @@ class Caja(ABC):
 
 
 class Kilovatio(Caja):
-    PRECIO_FIJO = 250
+    PRECIO_FIJO = 400
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Block-18", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
-        {"clase": Glock, "skin": "High Beam", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
-        {"clase": AWP, "skin": "Capillary", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Inheritance", "rareza": "roja", "probabilidad": 0.32, "subtipo": None},
-        {"clase": AWP, "skin": "Chrome Cannon", "rareza": "roja", "probabilidad": 0.32, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Fade", "rareza": "dorada", "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Slaughter", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Block-18", "rareza": "azul", "probabilidad": 65, "subtipo": None},
+        {"clase": Glock, "skin": "High Beam", "rareza": "violeta", "probabilidad": 20, "subtipo": None},
+        {"clase": AWP, "skin": "Capillary", "rareza": "rosada", "probabilidad": 9, "subtipo": None},
+        {"clase": Ak47, "skin": "Inheritance", "rareza": "roja", "probabilidad": 2, "subtipo": None},
+        {"clase": AWP, "skin": "Chrome Cannon", "rareza": "roja", "probabilidad": 2, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Fade", "rareza": "dorada", "probabilidad": 1},
+        {"clase": ArmaBlanca, "subtipo": "Kukri", "skin": "Slaughter", "rareza": "dorada", "probabilidad": 1},
     ]
 
     def __init__(self, id_caja: int, generador: Optional[Any] = None):
@@ -96,14 +96,14 @@ class Kilovatio(Caja):
 
 
 class DreamsAndNightmares(Caja):
-    PRECIO_FIJO = 300
+    PRECIO_FIJO = 500
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Clear Polymer", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
-        {"clase": AWP, "skin": "Exoskeleton", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
-        {"clase": Glock, "skin": "Snack Attack", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Nightwish", "rareza": "roja", "probabilidad": 0.64, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Lore", "rareza": "dorada", "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Bowie", "skin": "Gamma Doppler", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Clear Polymer", "rareza": "azul", "probabilidad": 65, "subtipo": None},
+        {"clase": AWP, "skin": "Exoskeleton", "rareza": "violeta", "probabilidad": 20, "subtipo": None},
+        {"clase": Glock, "skin": "Snack Attack", "rareza": "rosada", "probabilidad": 9, "subtipo": None},
+        {"clase": Ak47, "skin": "Nightwish", "rareza": "roja", "probabilidad": 4, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Lore", "rareza": "dorada", "probabilidad": 1},
+        {"clase": ArmaBlanca, "subtipo": "Bowie", "skin": "Gamma Doppler", "rareza": "dorada", "probabilidad": 1},
     ]
 
     def __init__(self, id_caja: int, generador: Optional[Any] = None):
@@ -117,14 +117,14 @@ class DreamsAndNightmares(Caja):
 
 
 class Revolucion(Caja):
-    PRECIO_FIJO = 350
+    PRECIO_FIJO = 450
     LOOTPOOL: List[Dict[str, Any]] = [
-        {"clase": Glock, "skin": "Winterized", "rareza": "azul", "probabilidad": 79.92, "subtipo": None},
-        {"clase": Glock, "skin": "Umbral Hare", "rareza": "violeta", "probabilidad": 15.98, "subtipo": None},
-        {"clase": AWP, "skin": "Duality", "rareza": "rosada", "probabilidad": 3.20, "subtipo": None},
-        {"clase": Ak47, "skin": "Head Shot", "rareza": "roja", "probabilidad": 0.64, "subtipo": None},
-        {"clase": ArmaBlanca, "subtipo": "Karambit", "skin": "Doppler", "rareza": "dorada", "probabilidad": 0.13},
-        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Tiger Tooth", "rareza": "dorada", "probabilidad": 0.13},
+        {"clase": Glock, "skin": "Winterized", "rareza": "azul", "probabilidad": 65, "subtipo": None},
+        {"clase": Glock, "skin": "Umbral Hare", "rareza": "violeta", "probabilidad": 20, "subtipo": None},
+        {"clase": AWP, "skin": "Duality", "rareza": "rosada", "probabilidad": 9, "subtipo": None},
+        {"clase": Ak47, "skin": "Head Shot", "rareza": "roja", "probabilidad": 4, "subtipo": None},
+        {"clase": ArmaBlanca, "subtipo": "Karambit", "skin": "Doppler", "rareza": "dorada", "probabilidad": 1},
+        {"clase": ArmaBlanca, "subtipo": "Mariposa", "skin": "Tiger Tooth", "rareza": "dorada", "probabilidad": 1},
     ]
 
     def __init__(self, id_caja: int, generador: Optional[Any] = None):

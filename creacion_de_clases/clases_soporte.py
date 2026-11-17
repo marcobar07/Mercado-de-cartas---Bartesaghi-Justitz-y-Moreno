@@ -87,7 +87,7 @@ class Generador:
         """Genera el desgaste del arma redondeado a los decimales especificados."""
         return round(self.uniform(min_val, max_val), decimales)
 
-    def generar_patron(self, min_val: int = 1, max_val: int = 1000) -> int:
+    def generar_patron(self, min_val: int = 1, max_val: int = 60) -> int:
         """Genera un patrón numérico entero para el arma entre min_val y max_val."""
         return self.randint(min_val, max_val)
 
