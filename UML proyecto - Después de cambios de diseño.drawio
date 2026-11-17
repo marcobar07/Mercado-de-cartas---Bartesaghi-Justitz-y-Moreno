@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="SKppk2QqJC4QrRe4hdgU">
-    <mxGraphModel dx="2091" dy="1854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1880" dy="1726" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -398,7 +398,7 @@
         <mxCell id="Uhhi5DIAvhjH37RcvFA--26" parent="Uhhi5DIAvhjH37RcvFA--24" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
           <mxGeometry height="8" width="310" y="86" as="geometry" />
         </mxCell>
-        <mxCell id="Uhhi5DIAvhjH37RcvFA--27" parent="Uhhi5DIAvhjH37RcvFA--24" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ publicar_oferta(vendedor, arma, precio): Oferta&lt;br&gt;+ cancelar_oferta(oferta)&lt;br&gt;+ comprar_oferta(oferta, comprador): bool&lt;div&gt;LAS SIGUIENTES TODAVÍA NO ESTÁN IMPLEMENTADAS TODAVIA&lt;br&gt;+ buscar_activas(tipo, skin, rareza, precio_max): lista(Oferta)&lt;br&gt;+ ofertas_activas_de(usuario): lista(Oferta)&lt;br&gt;+ buscar_historial(arma, vendedor, comprador, estado, desde, hasta): lista(Oferta)&lt;br&gt;+ ventas_de(usuario): lista(Oferta)&lt;br&gt;+ compras_de(usuario): lista(Oferta)&lt;/div&gt;" vertex="1">
+        <mxCell id="Uhhi5DIAvhjH37RcvFA--27" parent="Uhhi5DIAvhjH37RcvFA--24" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ publicar_oferta(vendedor, arma, precio): Oferta&lt;br&gt;+ cancelar_oferta(oferta)&lt;br&gt;+ comprar_oferta(oferta, comprador): bool&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="209" width="310" y="94" as="geometry" />
         </mxCell>
         <mxCell id="eLFU2_iNGovAbMR26jNq-8" edge="1" parent="1" source="gVaGvzbShSsN6i3TofM4-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;endArrow=diamond;endFill=1;" target="eLFU2_iNGovAbMR26jNq-1">

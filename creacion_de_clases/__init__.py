@@ -13,6 +13,7 @@ from .clases_caja import Caja, Kilovatio, DreamsAndNightmares, Revolucion
 from .clase_usuarios import Usuario
 from .clases_oferta_mercado import Oferta, Mercado
 from .clases_soporte import Generador, Auditor
+from .clase_simulacion import Simulacion
 
 __all__ = [
     "Arma",
@@ -31,5 +32,6 @@ __all__ = [
     "Mercado",
     "Generador",
     "Auditor",
+    "Simulacion",
 ]
 
