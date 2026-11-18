@@ -392,51 +392,6 @@ def gestionar_busqueda_y_filtrado(
     return resultados
 
 
-def gestionar_liquidacion_masiva(
-    mercado: Any,
-    usuario: Any,
-    valor_maximo_corte: int,
-    descuento_liquidacion: float = 0.15,
-    auditor: Optional[Any] = None
-) -> Dict[str, Any]:
-    """Vende o publica en lote todas las armas de bajo valor de un usuario."""
-    aud = auditor if auditor is not None else getattr(mercado, "auditor", None)
-
-    def _reg(tipo: str, descripcion: str, datos: Optional[Dict[str, Any]] = None):
-        if aud is not None:
-            return aud.registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
-        return registrar_evento(tipo=tipo, descripcion=descripcion, datos=datos)
-
-    armas_a_liquidar = [
-        arma for arma in list(usuario.inventario_armas)
-        if arma.calcular_valor() <= valor_maximo_corte
-    ]
-
-    ofertas_creadas = []
-    for arma in armas_a_liquidar:
-        res = gestionar_publicacion_oferta(
-            mercado=mercado,
-            vendedor=usuario,
-            arma=arma,
-            margen_sugerido=-descuento_liquidacion,
-            auditor=aud
-        )
-        if res["exito"]:
-            ofertas_creadas.append(res["oferta"])
-
-    _reg(
-        tipo="LIQUIDACION_MASIVA",
-        descripcion=f"{usuario.id} liquidó {len(ofertas_creadas)} armas en el mercado.",
-        datos={"usuario": usuario.id, "cantidad_liquidada": len(ofertas_creadas)}
-    )
-
-    return {
-        "usuario": usuario.id,
-        "total_liquidado": len(ofertas_creadas),
-        "ofertas": ofertas_creadas
-    }
-
-
 def gestionar_informe_completo_mercado(
     mercado: Any,
     usuarios: Optional[List[Any]] = None,

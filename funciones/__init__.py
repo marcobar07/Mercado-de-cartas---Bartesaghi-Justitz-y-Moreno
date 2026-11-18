@@ -42,7 +42,6 @@ from .gestion_mercado import (
     gestionar_compra_oferta,
     gestionar_cancelacion_oferta,
     gestionar_busqueda_y_filtrado,
-    gestionar_liquidacion_masiva,
     gestionar_informe_completo_mercado,
 )
 
@@ -79,7 +78,6 @@ __all__ = [
     "gestionar_compra_oferta",
     "gestionar_cancelacion_oferta",
     "gestionar_busqueda_y_filtrado",
-    "gestionar_liquidacion_masiva",
     "gestionar_informe_completo_mercado",
 ]
 

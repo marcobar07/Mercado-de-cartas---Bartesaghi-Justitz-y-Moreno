@@ -428,5 +428,326 @@ class TestValidacionesYSeguridadTransaccional(unittest.TestCase):
         self.assertIn(caja_defectuosa, usuario.inventario_cajas)
 
 
+class TestBusquedaYFiltradoMercado(unittest.TestCase):
+    def setUp(self):
+        self.mercado = Mercado()
+        self.vendedor = Usuario("Vendedor_Filtros", fondos=10000)
+
+        # Creamos varias armas con combinaciones distintas
+        self.arma1 = Glock(id_arma=1, skin="Block-18", desgaste=0.20, patron=10, rareza="azul", stattrack=False)
+        self.arma2 = AWP(id_arma=2, skin="Duality", desgaste=0.50, patron=20, rareza="rosada", stattrack=True)
+        self.arma3 = Ak47(id_arma=3, skin="Inheritance", desgaste=0.10, patron=30, rareza="roja", stattrack=False)
+        self.arma4 = ArmaBlanca(id_arma=4, skin="Fade", tipo="Kukri", desgaste=0.05, patron=40, rareza="dorada", stattrack=True)
+
+        for a in [self.arma1, self.arma2, self.arma3, self.arma4]:
+            self.vendedor.agregar_arma(a)
+
+        self.of1 = self.mercado.publicar_oferta(self.vendedor, self.arma1, precio=500)
+        self.of2 = self.mercado.publicar_oferta(self.vendedor, self.arma2, precio=1500)
+        self.of3 = self.mercado.publicar_oferta(self.vendedor, self.arma3, precio=3000)
+        self.of4 = self.mercado.publicar_oferta(self.vendedor, self.arma4, precio=8000)
+
+    def test_filtrar_por_tipo_arma(self):
+        res_glock = f.gestionar_busqueda_y_filtrado(self.mercado, tipo_arma="Glock")
+        self.assertEqual(len(res_glock), 1)
+        self.assertEqual(res_glock[0].arma.skin, "Block-18")
+
+        res_cuchillo = f.gestionar_busqueda_y_filtrado(self.mercado, tipo_arma="Kukri")
+        self.assertEqual(len(res_cuchillo), 1)
+        self.assertEqual(res_cuchillo[0].arma.tipo, "Kukri")
+
+    def test_filtrar_por_rareza(self):
+        res_azul = f.gestionar_busqueda_y_filtrado(self.mercado, rareza="azul")
+        self.assertEqual(len(res_azul), 1)
+        self.assertEqual(res_azul[0].arma.rareza, "azul")
+
+        res_roja = f.gestionar_busqueda_y_filtrado(self.mercado, rareza="roja")
+        self.assertEqual(len(res_roja), 1)
+        self.assertEqual(res_roja[0].arma.rareza, "roja")
+
+    def test_filtrar_por_stattrack(self):
+        res_stattrack = f.gestionar_busqueda_y_filtrado(self.mercado, stattrack=True)
+        self.assertEqual(len(res_stattrack), 2)
+        self.assertTrue(all(o.arma.stattrack for o in res_stattrack))
+
+        res_no_stattrack = f.gestionar_busqueda_y_filtrado(self.mercado, stattrack=False)
+        self.assertEqual(len(res_no_stattrack), 2)
+        self.assertTrue(all(not o.arma.stattrack for o in res_no_stattrack))
+
+    def test_filtrar_por_precio_maximo(self):
+        res = f.gestionar_busqueda_y_filtrado(self.mercado, precio_maximo=2000)
+        self.assertEqual(len(res), 2)
+        self.assertTrue(all(o.precio <= 2000 for o in res))
+
+    def test_ordenamiento_precio_ascendente_y_descendente(self):
+        res_asc = f.gestionar_busqueda_y_filtrado(self.mercado, ordenar_por="precio")
+        precios_asc = [o.precio for o in res_asc]
+        self.assertEqual(precios_asc, [500, 1500, 3000, 8000])
+
+        res_desc = f.gestionar_busqueda_y_filtrado(self.mercado, ordenar_por="precio_desc")
+        precios_desc = [o.precio for o in res_desc]
+        self.assertEqual(precios_desc, [8000, 3000, 1500, 500])
+
+    def test_ordenamiento_por_desgaste(self):
+        res_desgaste = f.gestionar_busqueda_y_filtrado(self.mercado, ordenar_por="desgaste")
+        desgastes = [o.arma.desgaste for o in res_desgaste]
+        self.assertEqual(desgastes, sorted(desgastes))
+
+
+class TestInformesMercado(unittest.TestCase):
+    def setUp(self):
+        self.mercado = Mercado()
+        self.usuario = Usuario("Usuario_Informes", fondos=10000)
+        self.comprador = Usuario("Comprador_Informes", fondos=50000)
+
+    def test_informe_completo_mercado(self):
+        # 1. Mercado vacío inicialmente
+        info_vacio = f.gestionar_informe_completo_mercado(self.mercado, usuarios=[self.usuario, self.comprador])
+        self.assertEqual(info_vacio["ofertas_activas"], 0)
+        self.assertEqual(info_vacio["total_ventas_concluidas"], 0)
+        self.assertEqual(info_vacio["volumen_total_transaccionado"], 0)
+        self.assertIsNone(info_vacio["arma_mas_cara_vendida"])
+        self.assertEqual(len(info_vacio["usuarios"]), 2)
+
+        # 2. Publicar dos ofertas, comprar una y cancelar otra
+        arma_a = Glock(id_arma=201, skin="Block-18", desgaste=0.5, patron=20, rareza="azul", stattrack=False)
+        arma_b = Ak47(id_arma=202, skin="Inheritance", desgaste=0.2, patron=30, rareza="roja", stattrack=False)
+        self.usuario.agregar_arma(arma_a)
+        self.usuario.agregar_arma(arma_b)
+
+        of_a = self.mercado.publicar_oferta(self.usuario, arma_a, precio=600)
+        of_b = self.mercado.publicar_oferta(self.usuario, arma_b, precio=2400)
+
+        # Cancelar of_a
+        f.gestionar_cancelacion_oferta(self.mercado, self.usuario, of_a)
+        # Comprar of_b
+        f.gestionar_compra_oferta(self.mercado, self.comprador, of_b, aplicar_comision=True)
+
+        info = f.gestionar_informe_completo_mercado(self.mercado, usuarios=[self.usuario, self.comprador])
+        self.assertEqual(info["total_ventas_concluidas"], 1)
+        self.assertEqual(info["total_canceladas"], 1)
+        self.assertEqual(info["volumen_total_transaccionado"], 2400)
+        self.assertIsNotNone(info["arma_mas_cara_vendida"])
+        self.assertEqual(info["arma_mas_cara_vendida"]["skin"], "Inheritance")
+        self.assertEqual(info["arma_mas_cara_vendida"]["precio"], 2400)
+        self.assertEqual(info["arma_mas_cara_vendida"]["comprador"], self.comprador.id)
+
+
+class TestCasosBordeYErrorGestionMercado(unittest.TestCase):
+    def setUp(self):
+        self.mercado = Mercado()
+        self.vendedor = Usuario("Vendedor_Borde", fondos=20000)
+        self.comprador_pobre = Usuario("Comprador_Pobre", fondos=100)
+
+    def test_compra_y_apertura_caja_fondos_insuficientes(self):
+        usuario_sin_fondos = Usuario("Usuario_Sin_Fondos", fondos=50)
+        caja = Kilovatio(id_caja=1)
+        res = f.gestionar_compra_y_apertura_caja(usuario_sin_fondos, caja)
+
+        self.assertFalse(res["exito"])
+        self.assertIn("fondos insuficientes", res["motivo"].lower())
+        self.assertEqual(usuario_sin_fondos.fondos, 50)
+        self.assertEqual(len(usuario_sin_fondos.inventario_cajas), 0)
+        self.assertEqual(len(usuario_sin_fondos.inventario_armas), 0)
+
+    def test_compra_oferta_comprador_fondos_insuficientes(self):
+        arma = Glock(id_arma=301, skin="Block-18", desgaste=0.3, patron=15, rareza="azul", stattrack=False)
+        self.vendedor.agregar_arma(arma)
+        of = self.mercado.publicar_oferta(self.vendedor, arma, precio=1000)
+
+        res = f.gestionar_compra_oferta(self.mercado, self.comprador_pobre, of)
+        self.assertFalse(res["exito"])
+        self.assertIn("fondos insuficientes", res["motivo"].lower())
+        self.assertIn(of, self.mercado.ofertas_activas)
+
+    def test_compra_oferta_inactiva_falla(self):
+        arma = Glock(id_arma=302, skin="Block-18", desgaste=0.3, patron=15, rareza="azul", stattrack=False)
+        self.vendedor.agregar_arma(arma)
+        of = self.mercado.publicar_oferta(self.vendedor, arma, precio=500)
+
+        # Primero la cancelamos
+        self.mercado.cancelar_oferta(of)
+
+        # Intentar comprar una oferta cancelada
+        comprador = Usuario("Comprador_Ok", fondos=10000)
+        res = f.gestionar_compra_oferta(self.mercado, comprador, of)
+        self.assertFalse(res["exito"])
+        self.assertIn("no está activa", res["motivo"].lower())
+
+    def test_compra_oferta_sin_comision(self):
+        arma = Glock(id_arma=303, skin="Block-18", desgaste=0.3, patron=15, rareza="azul", stattrack=False)
+        self.vendedor.agregar_arma(arma)
+        of = self.mercado.publicar_oferta(self.vendedor, arma, precio=1000)
+
+        comprador = Usuario("Comprador_Sin_Comision", fondos=10000)
+        vendedor_fondos_prev = self.vendedor.fondos
+
+        res = f.gestionar_compra_oferta(self.mercado, comprador, of, aplicar_comision=False)
+        self.assertTrue(res["exito"])
+        self.assertEqual(res["comision_mercado"], 0)
+        self.assertEqual(self.vendedor.fondos, vendedor_fondos_prev + 1000)
+
+    def test_cancelacion_oferta_por_usuario_no_vendedor_falla(self):
+        arma = Glock(id_arma=304, skin="Block-18", desgaste=0.3, patron=15, rareza="azul", stattrack=False)
+        self.vendedor.agregar_arma(arma)
+        of = self.mercado.publicar_oferta(self.vendedor, arma, precio=1000)
+
+        intruso = Usuario("Intruso", fondos=5000)
+        res = f.gestionar_cancelacion_oferta(self.mercado, intruso, of)
+        self.assertFalse(res["exito"])
+        self.assertIn("solo el vendedor", res["motivo"].lower())
+        self.assertIn(of, self.mercado.ofertas_activas)
+
+    def test_cancelacion_oferta_ya_cancelada_falla(self):
+        arma = Glock(id_arma=305, skin="Block-18", desgaste=0.3, patron=15, rareza="azul", stattrack=False)
+        self.vendedor.agregar_arma(arma)
+        of = self.mercado.publicar_oferta(self.vendedor, arma, precio=1000)
+
+        # Primera cancelación exitosa
+        res1 = f.gestionar_cancelacion_oferta(self.mercado, self.vendedor, of)
+        self.assertTrue(res1["exito"])
+
+        # Segunda cancelación sobre la misma oferta falla
+        res2 = f.gestionar_cancelacion_oferta(self.mercado, self.vendedor, of)
+        self.assertFalse(res2["exito"])
+        self.assertIn("no se encuentra activa", res2["motivo"].lower())
+
+
+class TestTodasLasCajasLootpool(unittest.TestCase):
+    def test_caja_suenos_y_pesadillas(self):
+        caja = DreamsAndNightmares(id_caja=10)
+        self.assertEqual(caja.precio, 500)
+        self.assertEqual(caja.nombre, "Caja Sueños y Pesadillas")
+        self.assertGreater(len(caja.lootpool), 0)
+
+        gen = Generador(semilla=777)
+        arma = caja.abrir(generador=gen)
+        self.assertIsNotNone(arma)
+        self.assertTrue(0.0 <= arma.desgaste <= 1.0)
+        self.assertTrue(1 <= arma.patron <= 60)
+        self.assertGreater(arma.valor, 0)
+
+    def test_caja_revolucion(self):
+        caja = Revolucion(id_caja=20)
+        self.assertEqual(caja.precio, 450)
+        self.assertEqual(caja.nombre, "Caja Revolución")
+        self.assertGreater(len(caja.lootpool), 0)
+
+        gen = Generador(semilla=888)
+        arma = caja.abrir(generador=gen)
+        self.assertIsNotNone(arma)
+        self.assertTrue(0.0 <= arma.desgaste <= 1.0)
+        self.assertTrue(1 <= arma.patron <= 60)
+        self.assertGreater(arma.valor, 0)
+
+
+class TestUsuarioYMetodosAdicionales(unittest.TestCase):
+    def setUp(self):
+        self.u = Usuario("Usuario_Extra", fondos=5000)
+
+    def test_quitar_arma_no_poseida_lanza_error(self):
+        arma_ajena = Glock(id_arma=999, skin="Block-18", desgaste=0.1, patron=10, rareza="azul", stattrack=False)
+        with self.assertRaises(ValueError):
+            self.u.quitar_arma(arma_ajena)
+
+    def test_quitar_arma_libera_propietario(self):
+        arma = Glock(id_arma=998, skin="Block-18", desgaste=0.1, patron=10, rareza="azul", stattrack=False)
+        self.u.agregar_arma(arma)
+        self.assertEqual(arma.propietario, self.u)
+
+        self.u.quitar_arma(arma)
+        self.assertIsNone(arma.propietario)
+        self.assertNotIn(arma, self.u.inventario_armas)
+
+    def test_gastar_fondos_cero(self):
+        self.assertTrue(self.u.gastar_fondos(0))
+        self.assertEqual(self.u.fondos, 5000)
+
+    def test_abrir_caja_inexistente_retorna_none(self):
+        caja_no_comprada = Kilovatio(id_caja=1)
+        self.assertIsNone(self.u.abrir_caja(caja_no_comprada))
+
+    def test_valor_inventario_suma_correcta(self):
+        arma1 = Glock(id_arma=901, skin="Block-18", desgaste=0.2, patron=10, rareza="azul", stattrack=False)
+        arma2 = Ak47(id_arma=902, skin="Inheritance", desgaste=0.3, patron=20, rareza="roja", stattrack=False)
+        self.u.agregar_arma(arma1)
+        self.u.agregar_arma(arma2)
+
+        esperado = arma1.calcular_valor() + arma2.calcular_valor()
+        self.assertEqual(self.u.valor_inventario(), esperado)
+
+
+class TestGeneradorYAuditorMetodosDetallados(unittest.TestCase):
+    def test_generador_metodos_atributos(self):
+        gen = Generador(semilla=42)
+        desgaste = gen.generar_desgaste(0.1, 0.9, decimales=3)
+        self.assertTrue(0.1 <= desgaste <= 0.9)
+        self.assertEqual(desgaste, round(desgaste, 3))
+
+        patron = gen.generar_patron(1, 60)
+        self.assertTrue(1 <= patron <= 60)
+
+        # Probabilidad 1.0 siempre True, 0.0 siempre False
+        self.assertTrue(gen.determinar_stattrack(probabilidad=1.0))
+        self.assertFalse(gen.determinar_stattrack(probabilidad=0.0))
+
+        # random_float en [0.0, 1.0)
+        rf = gen.random_float()
+        self.assertTrue(0.0 <= rf < 1.0)
+
+        # Seleccionar item lootpool
+        pool = [{"item": "A", "prob": 0.999}, {"item": "B", "prob": 0.001}]
+        elegido = gen.seleccionar_item_lootpool(pool, [0.999, 0.001])
+        self.assertIn(elegido["item"], ["A", "B"])
+
+    def test_auditor_metodos_financieros_y_limpieza(self):
+        aud = Auditor(tasa_comision_default=0.05)
+        aud.registrar_evento("T1", "Desc 1", {"k": 1})
+        self.assertEqual(len(aud.obtener_historial_eventos()), 1)
+
+        aud.limpiar_historial_eventos()
+        self.assertEqual(len(aud.obtener_historial_eventos()), 0)
+
+        # Precio sugerido
+        self.assertEqual(aud.calcular_precio_sugerido(1000, margen_porcentaje=0.20), 1200)
+        self.assertEqual(aud.calcular_precio_sugerido(1000, margen_porcentaje=-0.15), 850)
+
+        # Evaluar rentabilidad
+        rent_pos = aud.evaluar_rentabilidad_apertura(precio_caja=400, valor_arma=1000)
+        self.assertTrue(rent_pos["es_rentable"])
+        self.assertEqual(rent_pos["beneficio_neto"], 600)
+        self.assertEqual(rent_pos["roi_porcentaje"], 150.0)
+
+        rent_neg = aud.evaluar_rentabilidad_apertura(precio_caja=500, valor_arma=200)
+        self.assertFalse(rent_neg["es_rentable"])
+        self.assertEqual(rent_neg["beneficio_neto"], -300)
+        self.assertEqual(rent_neg["roi_porcentaje"], -60.0)
+
+
+class TestOfertaEstadosYMetodosDirectos(unittest.TestCase):
+    def test_transiciones_de_estado_oferta(self):
+        vendedor = Usuario("V_Oferta", fondos=1000)
+        comprador = Usuario("C_Oferta", fondos=2000)
+        arma = Glock(id_arma=888, skin="Block-18", desgaste=0.2, patron=10, rareza="azul", stattrack=False)
+        vendedor.agregar_arma(arma)
+
+        of = Oferta(vendedor, arma, precio=500)
+        self.assertEqual(of.estado, "En venta")
+        self.assertIsNone(of.fecha_cierre)
+        self.assertIsNone(of.comprador)
+
+        # Marcar vendida
+        of.marcar_como_vendida(comprador)
+        self.assertEqual(of.estado, "Vendida")
+        self.assertEqual(of.comprador, comprador)
+        self.assertIsNotNone(of.fecha_cierre)
+
+        # Cancelar
+        of2 = Oferta(vendedor, arma, precio=500)
+        of2.cancelar()
+        self.assertEqual(of2.estado, "Cancelada")
+        self.assertIsNotNone(of2.fecha_cierre)
+
+
 if __name__ == "__main__":
     unittest.main()
